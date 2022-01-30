@@ -96,6 +96,62 @@ public class MyGrid
     }
 
 
+    /// <summary>
+    /// Finds and resturns all of the cells with only 1 link.
+    /// </summary>
+    /// <returns></returns>
+    public List<Cell> GetDeadEnds()
+    {
+        List<Cell> deadEnds = new List<Cell>();
+
+        for (int row = 0; row < Rows; row++)
+        {
+            for (int column = 0; column < Columns; column++)
+            {
+                if (grid[row, column] != null)
+                {
+                    if (grid[row, column].Links.Count == 1)
+                    {
+                        deadEnds.Add(grid[row, column]);
+                    }
+                }
+            }
+        }
+
+        return deadEnds;
+    }
+
+    public void BraidMaze(int percentage)
+    {
+        List<Cell> deadEnds = GetDeadEnds();
+        int cellsRemaining = (int)(deadEnds.Count * (percentage / 100f));
+
+        while (cellsRemaining > 0)
+        {
+            Cell currentCell = deadEnds[Random.Range(0, deadEnds.Count - 1)];
+
+            while (true)
+            {
+                Cell neighbour = currentCell.RandomNeighbour();
+
+                if (neighbour != null && neighbour != currentCell.Links[0])
+                {
+                    currentCell.LinkCell(neighbour, true);
+                    deadEnds.Remove(currentCell);
+
+                    if (deadEnds.Remove(neighbour))
+                    {
+                        cellsRemaining--;
+                    }
+
+                    cellsRemaining--;
+
+                    break;
+                }
+            }
+        }
+    }
+
     public void SetupMask(string[] mask)
     {
         for (int row = 0; row < rows; row++)

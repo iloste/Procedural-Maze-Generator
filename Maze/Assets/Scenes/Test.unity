@@ -272,7 +272,9 @@ MonoBehaviour:
   algorithm: 2
   colouring: 2
   gridSize: {x: 20, y: 20}
-  image: {fileID: 2800000, guid: d26084f0bb1eccf4dac49864c5432df2, type: 3}
+  braidMaze: 0
+  braidPercentage: 0
+  displayDeadEnds: 1
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0

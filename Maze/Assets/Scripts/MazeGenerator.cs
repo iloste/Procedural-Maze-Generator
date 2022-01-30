@@ -9,6 +9,10 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] Algorithm algorithm;
     [SerializeField] Colouring colouring;
     [SerializeField] Vector2Int gridSize;
+    [SerializeField] bool braidMaze;
+    [Tooltip("100% = no dead ends.")]
+    [SerializeField] int braidPercentage;
+    [SerializeField] bool displayDeadEnds;
 
     MyGrid grid;
     Pathfinding pf;
@@ -33,9 +37,8 @@ public class MazeGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-         grid = new MyGrid("Assets/mazes/maze.txt");
-        bool[,] j = new bool[2, 2];
-       // grid = new MyGrid(gridSize.x, gridSize.y);
+        // grid = new MyGrid("Assets/mazes/maze.txt");
+        grid = new MyGrid(gridSize.x, gridSize.y);
 
         switch (algorithm)
         {
@@ -57,6 +60,12 @@ public class MazeGenerator : MonoBehaviour
 
 
         pf = new Pathfinding(grid.Rows, grid.Columns);
+
+        if (braidMaze)
+        {
+            grid.BraidMaze(braidPercentage);
+        }
+
         DisplayGrid(grid);
 
 
@@ -76,11 +85,14 @@ public class MazeGenerator : MonoBehaviour
                 break;
         }
 
-       
+        if (displayDeadEnds)
+        {
+            DisplayDeadEnds();
+        }
     }
 
 
-  
+
 
     ///To do: create a seperate class for displaying grids?
     void DisplayGrid(MyGrid grid)
@@ -91,7 +103,7 @@ public class MazeGenerator : MonoBehaviour
             {
                 Cell cell = grid.GetCell(row, column);
 
-              //  if (cell != null && grid.CellValid(cell))
+                //  if (cell != null && grid.CellValid(cell))
                 if (cell != null)
                 {
                     Tile tile = Instantiate(tilePrefab, new Vector3(row * 1.4f, 0, column * 1.4f), Quaternion.identity).GetComponent<Tile>();
@@ -129,7 +141,7 @@ public class MazeGenerator : MonoBehaviour
                 {
                     Cell cell = grid.GetCell(row, column);
                     float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
-                    cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0); 
+                    cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
                 }
             }
         }
@@ -145,6 +157,17 @@ public class MazeGenerator : MonoBehaviour
             cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
         }
 
+    }
+
+    void DisplayDeadEnds()
+    {
+        List<Cell> deadEnds = grid.GetDeadEnds();
+
+        for (int i = 0; i < deadEnds.Count; i++)
+        {
+            deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
+
+        }
     }
 
 
