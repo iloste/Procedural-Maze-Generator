@@ -272,8 +272,8 @@ MonoBehaviour:
   algorithm: 2
   colouring: 2
   gridSize: {x: 20, y: 20}
-  braidMaze: 0
-  braidPercentage: 0
+  braidMaze: 1
+  braidPercentage: 50
   displayDeadEnds: 1
 --- !u!4 &851988278
 Transform:

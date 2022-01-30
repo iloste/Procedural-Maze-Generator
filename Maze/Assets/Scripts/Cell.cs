@@ -53,6 +53,7 @@ public class Cell
                 }
             }
         }
+
         return false;
     }
 
@@ -158,5 +159,23 @@ public class Cell
         return neighbour;
     }
 
+
+    /// <summary>
+    /// returns the first dead end neighbour. Returns null if there aren't any.
+    /// </summary>
+    /// <returns></returns>
+    public Cell DeadEndNeighbour()
+    {
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (neighbours.ElementAt(i).Value.Links.Count == 1)
+            {
+                return neighbours.ElementAt(i).Value;
+            }
+        }
+
+        return null;
+        
+    }
 }
 

@@ -121,6 +121,11 @@ public class MyGrid
         return deadEnds;
     }
 
+
+    /// <summary>
+    /// Finds the dead ends of the grid and links them to other cells so they're no longer deadends.
+    /// </summary>
+    /// <param name="percentage">The percent of dead ends that will be linked.</param>
     public void BraidMaze(int percentage)
     {
         List<Cell> deadEnds = GetDeadEnds();
@@ -132,7 +137,14 @@ public class MyGrid
 
             while (true)
             {
-                Cell neighbour = currentCell.RandomNeighbour();
+                Cell neighbour = currentCell.DeadEndNeighbour();
+
+                // to do: see if one of the neighbours is also a dead end and merge with that first. If not, get a random neighbour.
+
+                if (neighbour == null)
+                {
+                    neighbour = currentCell.RandomNeighbour();
+                }
 
                 if (neighbour != null && neighbour != currentCell.Links[0])
                 {
