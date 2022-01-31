@@ -4,48 +4,59 @@ using UnityEngine;
 
 public class MyGrid
 {
-
-
     protected int rows, columns;
     protected Cell[,] grid;
-    private bool[,] cellValidity;
-
+    //private bool[,] cellValidity;
+    private int[] cellCounts;
 
     public int Rows { get { return rows; } }
     public int Columns { get { return columns; } }
-    public int Count { get; protected set; }
+
 
     public MyGrid()
     {
-
+        cellCounts = new int[9];
     }
 
-    public MyGrid(int rows, int columns)
+    public MyGrid(int rows, int columns) : this()
     {
         this.rows = rows;
         this.columns = columns;
-        Count = rows * columns;
+        cellCounts[0] = rows * columns;
 
         grid = new Cell[rows, columns];
-        cellValidity = new bool[rows, columns];
+        // cellValidity = new bool[rows, columns];
 
-        SetupMask();
         PrepareGrid();
+        SetupMask();
         ConfigureGrid();
     }
 
-    public MyGrid(string path)
+    public MyGrid(string path) : this()
     {
         string[] mask = System.IO.File.ReadAllLines(path);
         rows = mask.Length;
         columns = mask[0].Length;
-        Count = rows * columns;
+        cellCounts[0] = rows * columns;
         grid = new Cell[rows, columns];
-        cellValidity = new bool[rows, columns];
+        // cellValidity = new bool[rows, columns];
 
-        SetupMask(mask);
         PrepareGrid();
+        SetupMask(mask);
         ConfigureGrid();
+    }
+
+    public int GetCellCount(int mask = 0)
+    {
+        if (mask < 0 || mask > cellCounts.Length - 1)
+        {
+            return 0;
+        }
+        else
+        {
+            return cellCounts[mask];
+        }
+
     }
 
 
@@ -53,21 +64,22 @@ public class MyGrid
     /// Finds and returns the first valid, unvisited cell found. Returns null if there are none.
     /// </summary>
     /// <returns></returns>
-    public Cell GetUnvisitedCell(bool withVisitedNeighbour)
+    public Cell GetUnvisitedCell(bool withVisitedNeighbour, int mask = 0)
     {
         for (int row = 0; row < Rows; row++)
         {
             for (int column = 0; column < Columns; column++)
             {
-                if (cellValidity[row, column])
+                if (mask == 0 || mask == grid[row, column].Mask)
+                // if (cellValidity[row, column])
                 {
                     if (!grid[row, column].Visited)
                     {
                         if (!withVisitedNeighbour)
                         {
-                            return grid[row, column]; 
+                            return grid[row, column];
                         }
-                        else if(grid[row, column].HasVisitedNeighbour())
+                        else if (grid[row, column].HasVisitedNeighbour())
                         {
                             return grid[row, column];
                         }
@@ -115,13 +127,14 @@ public class MyGrid
     //}
 
 
-    public void SetupMask()
+
+    public void setupValidity()
     {
         for (int i = 0; i < rows; i++)
         {
             for (int j = 0; j < columns; j++)
             {
-                cellValidity[i, j] = true;
+                //cellValidity[i, j] = true;
             }
         }
     }
@@ -174,7 +187,7 @@ public class MyGrid
 
                 if (neighbour == null)
                 {
-                    neighbour = currentCell.RandomNeighbour();
+                    neighbour = currentCell.GetRandomNeighbour();
                 }
 
                 if (neighbour != null && neighbour != currentCell.Links[0])
@@ -195,59 +208,96 @@ public class MyGrid
         }
     }
 
-    public void SetupMask(string[] mask)
+    public void SetupMask(string[] map)
     {
         for (int row = 0; row < rows; row++)
         {
             for (int column = 0; column < columns; column++)
             {
-                if (mask[row][column] == 'x')
+                int mask;
+
+                if (int.TryParse(map[row][column].ToString(), out mask))
                 {
-                    cellValidity[row, column] = false;
-                    // grid[row, column].Valid = false;
-                    Count--;
+                    cellCounts[mask]++;
                 }
                 else
                 {
-                    cellValidity[row, column] = true;
+                    mask = -1;
                 }
+
+                grid[row, column].Mask = mask;
+            }
+        }
+    }
+
+    public void SetupMask()
+    {
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < columns; column++)
+            {
+                int mask = 1;
+                grid[row, column].Mask = mask;
+                cellCounts[mask]++;
             }
         }
     }
 
 
 
-    public bool CellValid(Cell cell)
+    public bool CellValid(Cell cell, int mask = 0)
     {
         if (cell == null)
         {
             throw new System.Exception("Null cell");
         }
 
-        return cellValidity[cell.Row, cell.Column];
-    }
-
-    public bool CellValid(int row, int column)
-    {
-        if (row >= 0 && row < Rows)
+        if (cell.Mask == -1)
         {
-            if (column >= 0 && column < Columns)
-            {
-                return cellValidity[row, column];
-            }
+            return false;
+        }
+        else if (mask == 0)
+        {
+            return true;
+        }
+        else if (cell.Mask == mask)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
 
-        throw new System.Exception("cell does not exist");
+        //return cellValidity[cell.Row, cell.Column];
     }
 
-    public Cell GetCell(int row, int column)
+    public bool CellValid(int row, int column, int mask = 0)
+    {
+
+        Cell cell = grid[row, column];
+        return CellValid(cell, mask);
+
+
+        //if (row >= 0 && row < Rows)
+        //{
+        //    if (column >= 0 && column < Columns)
+        //    {
+        //        return cellValidity[row, column];
+        //    }
+        //}
+
+        //throw new System.Exception("cell does not exist");
+    }
+
+    public Cell GetCell(int row, int column, int mask = 0)
     {
         if (row >= 0 && row < rows)
         {
             if (column >= 0 && column < columns)
             {
                 //if (grid[row, column].Valid)
-                if (CellValid(row, column))
+                if (CellValid(row, column, mask))
                 {
                     return grid[row, column];
                 }
@@ -269,11 +319,7 @@ public class MyGrid
         {
             for (int column = 0; column < columns; column++)
             {
-                if (cellValidity[row, column])
-                {
-                    grid[row, column] = new Cell(row, column);
-
-                }
+                grid[row, column] = new Cell(row, column);
             }
         }
     }
@@ -284,15 +330,10 @@ public class MyGrid
         {
             for (int column = 0; column < columns; column++)
             {
-                //if (grid[row, column].Valid)
-                if (cellValidity[row, column])
-                {
-                    grid[row, column].SetNeighour(GetCell(row - 1, column), Cell.Direction.North);
-                    grid[row, column].SetNeighour(GetCell(row + 1, column), Cell.Direction.South);
-                    grid[row, column].SetNeighour(GetCell(row, column + 1), Cell.Direction.East);
-                    grid[row, column].SetNeighour(GetCell(row, column - 1), Cell.Direction.West);
-                }
-
+                grid[row, column].SetNeighour(GetCell(row - 1, column), Cell.Direction.North);
+                grid[row, column].SetNeighour(GetCell(row + 1, column), Cell.Direction.South);
+                grid[row, column].SetNeighour(GetCell(row, column + 1), Cell.Direction.East);
+                grid[row, column].SetNeighour(GetCell(row, column - 1), Cell.Direction.West);
             }
         }
     }
@@ -463,8 +504,16 @@ public class MyGrid
     //}
     #endregion
 
-    public Cell RandomCell()
+
+    /// <summary>
+    /// returns a random cell of the given mask
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    public Cell GetRandomCell(int mask = 0)
     {
+        //To do: make a list of each cell in each mask so you can make this more efficient.
+        // You could store them as just the coordinates in a list of vector2.
         int row, column;
         Cell cell;
 
@@ -473,6 +522,12 @@ public class MyGrid
             row = Random.Range(0, Rows);
             column = Random.Range(0, columns);
             cell = GetCell(row, column);
+
+            if (cell.Mask == -1 || (mask != 0 && cell.Mask != mask))
+            {
+                cell = null;
+            }
+
         } while (cell == null);
         // } while (cell == null || !CellValid(cell));
 

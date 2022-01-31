@@ -12,7 +12,7 @@ public class MaskedGrid : MyGrid
         Mask = mask;
         rows = mask.GetLength(0);
         columns = mask.GetLength(1);
-        Count = rows * columns;
+        //Count = rows * columns;
 
         grid = new Cell[rows, columns];
         PrepareGrid();

@@ -19,7 +19,7 @@ public class Cell
     public Dictionary<Direction, Cell> neighbours = new Dictionary<Direction, Cell>();
     public List<Cell> Links { get; private set; }
     public bool Visited { get; set; } = false;
-
+    public int Mask { get; set; }
     public Tile Tile { get; set; }
 
     public bool IsLinked(Cell cell)
@@ -36,7 +36,6 @@ public class Cell
                     }
                 }
             }
-
         }
 
         return false;
@@ -69,6 +68,10 @@ public class Cell
     public void SetNeighour(Cell cell, Direction direction)
     {
         if (cell == null)
+        {
+            return;
+        }
+        else if (cell.Mask == -1 || Mask == -1)
         {
             return;
         }
@@ -154,10 +157,42 @@ public class Cell
         }
     }
 
-    public Cell RandomNeighbour()
+
+    /// <summary>
+    /// Returns a neighbour in the given mask. Returns a random neighbour from any mask if the given mask is 0.
+    /// Returns null if no suitable neighbours.
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    public Cell GetRandomNeighbour(int mask = 0)
     {
-        Cell neighbour = neighbours.ElementAt(Random.Range(0, neighbours.Count)).Value;
-        return neighbour;
+        if (mask == 0)
+        {
+            Cell neighbour = neighbours.ElementAt(Random.Range(0, neighbours.Count)).Value;
+            return neighbour;
+        }
+        else
+        {
+            List<Cell> validNeighbours = new List<Cell>();
+
+            for (int i = 0; i < neighbours.Count; i++)
+            {
+                if (neighbours.ElementAt(i).Value.Mask == mask)
+                {
+                    validNeighbours.Add(neighbours.ElementAt(i).Value);
+                }
+            }
+
+            if (validNeighbours.Count > 0)
+            {
+                return validNeighbours.ElementAt(Random.Range(0, validNeighbours.Count));
+            }
+            else
+            {
+                return null;
+            }
+        }
+       
     }
 
 
@@ -183,15 +218,18 @@ public class Cell
     /// Returns a random unvisited neighbour. Returns null if there are none.
     /// </summary>
     /// <returns></returns>
-    public Cell RandomUnvisitedNeighbour()
+    public Cell RandomUnvisitedNeighbour(int mask = 0)
     {
         List<Cell> unvisitedNeighbours = new List<Cell>();
 
         for (int i = 0; i < neighbours.Count; i++)
         {
-            if (!neighbours.ElementAt(i).Value.Visited)
+            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
             {
-                unvisitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                if (!neighbours.ElementAt(i).Value.Visited)
+                {
+                    unvisitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                }
             }
         }
 
@@ -226,15 +264,18 @@ public class Cell
     /// Returns a random visited neighbour. Returns null if there aren't any.
     /// </summary>
     /// <returns></returns>
-    public Cell GetRandomVisitedNeighbour()
+    public Cell GetRandomVisitedNeighbour(int mask)
     {
         List<Cell> visitedNeighbours = new List<Cell>();
 
         for (int i = 0; i < neighbours.Count; i++)
         {
-            if (neighbours.ElementAt(i).Value.Visited)
+            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
             {
-                visitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                if (neighbours.ElementAt(i).Value.Visited)
+                {
+                    visitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                }
             }
         }
 

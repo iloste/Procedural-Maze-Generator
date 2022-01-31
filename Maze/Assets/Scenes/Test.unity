@@ -269,12 +269,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 8146616295129793659, guid: 706ec89a68ff44643a9cca1fecaaf785, type: 3}
-  algorithm: 6
+  algorithm: 5
   colouring: 0
   gridSize: {x: 20, y: 20}
   braidMaze: 0
   braidPercentage: 20
   displayDeadEnds: 0
+  currentMask: 2
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0
