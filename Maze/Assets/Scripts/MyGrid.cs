@@ -48,6 +48,37 @@ public class MyGrid
         ConfigureGrid();
     }
 
+
+    /// <summary>
+    /// Finds and returns the first valid, unvisited cell found. Returns null if there are none.
+    /// </summary>
+    /// <returns></returns>
+    public Cell GetUnvisitedCell(bool withVisitedNeighbour)
+    {
+        for (int row = 0; row < Rows; row++)
+        {
+            for (int column = 0; column < Columns; column++)
+            {
+                if (cellValidity[row, column])
+                {
+                    if (!grid[row, column].Visited)
+                    {
+                        if (!withVisitedNeighbour)
+                        {
+                            return grid[row, column]; 
+                        }
+                        else if(grid[row, column].HasVisitedNeighbour())
+                        {
+                            return grid[row, column];
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     //public MyGrid(Texture2D bitmap)
     //{
     //    Color[] colours = bitmap.GetPixels();

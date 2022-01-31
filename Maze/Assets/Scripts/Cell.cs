@@ -202,5 +202,49 @@ public class Cell
 
         return unvisitedNeighbours[Random.Range(0, unvisitedNeighbours.Count)];
     }
+
+
+    /// <summary>
+    /// Returns true if at least one of the neighbours have been visited.
+    /// </summary>
+    /// <returns></returns>
+    public bool HasVisitedNeighbour()
+    {
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (neighbours.ElementAt(i).Value.Visited)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /// <summary>
+    /// Returns a random visited neighbour. Returns null if there aren't any.
+    /// </summary>
+    /// <returns></returns>
+    public Cell GetRandomVisitedNeighbour()
+    {
+        List<Cell> visitedNeighbours = new List<Cell>();
+
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (neighbours.ElementAt(i).Value.Visited)
+            {
+                visitedNeighbours.Add(neighbours.ElementAt(i).Value);
+            }
+        }
+
+        if (visitedNeighbours.Count == 0)
+        {
+            return null;
+        }
+
+        return visitedNeighbours[Random.Range(0, visitedNeighbours.Count)];
+    }
+
 }
 
