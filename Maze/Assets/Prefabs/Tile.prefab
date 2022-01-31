@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6742869819169998868}
   - component: {fileID: 8235270799675030577}
   m_Layer: 0
-  m_Name: Pillar
+  m_Name: SE Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 8432174714237723510}
   - component: {fileID: 2228862769773841460}
   m_Layer: 0
-  m_Name: Pillar
+  m_Name: SW Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -126,7 +126,7 @@ Transform:
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 6
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4807680244221589198
 MeshFilter:
@@ -203,7 +203,7 @@ GameObject:
   - component: {fileID: 158825786079760011}
   - component: {fileID: 3920894892901332547}
   m_Layer: 0
-  m_Name: Pillar
+  m_Name: NE Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -221,7 +221,7 @@ Transform:
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 8
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5444769008814306634
 MeshFilter:
@@ -298,7 +298,7 @@ GameObject:
   - component: {fileID: 8146616294784822403}
   - component: {fileID: 8146616294784822402}
   m_Layer: 0
-  m_Name: North Wall
+  m_Name: East Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -316,7 +316,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8146616294784822400
 MeshFilter:
@@ -393,7 +393,7 @@ GameObject:
   - component: {fileID: 8146616295049793257}
   - component: {fileID: 8146616295049793256}
   m_Layer: 0
-  m_Name: East Wall
+  m_Name: South Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -504,14 +504,14 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8146616295808926582}
-  - {fileID: 8146616294784822401}
-  - {fileID: 8146616295928189419}
-  - {fileID: 8146616295049793263}
   - {fileID: 8146616295143343896}
-  - {fileID: 6595865715652182432}
-  - {fileID: 8914330875077923470}
-  - {fileID: 4152251830257184545}
+  - {fileID: 8146616294784822401}
+  - {fileID: 8146616295049793263}
+  - {fileID: 8146616295928189419}
   - {fileID: 4457502990957248420}
+  - {fileID: 6595865715652182432}
+  - {fileID: 4152251830257184545}
+  - {fileID: 8914330875077923470}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -532,6 +532,10 @@ MonoBehaviour:
   eastWall: {fileID: 8146616294784822413}
   westWall: {fileID: 8146616295928189431}
   floor: {fileID: 8146616295808926577}
+  northEastPillar: {fileID: 3886868527316124887}
+  northWestPillar: {fileID: 8925736856619139359}
+  southEastPillar: {fileID: 1188839709758761472}
+  southWestPillar: {fileID: 3711627211556190324}
 --- !u!1 &8146616295143343908
 GameObject:
   m_ObjectHideFlags: 0
@@ -545,7 +549,7 @@ GameObject:
   - component: {fileID: 8146616295143343898}
   - component: {fileID: 8146616295143343909}
   m_Layer: 0
-  m_Name: West Wall
+  m_Name: North Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -563,7 +567,7 @@ Transform:
   m_LocalScale: {x: 0.2, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 4
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8146616295143343899
 MeshFilter:
@@ -735,7 +739,7 @@ GameObject:
   - component: {fileID: 8146616295928189429}
   - component: {fileID: 8146616295928189428}
   m_Layer: 0
-  m_Name: South Wall
+  m_Name: West Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -753,7 +757,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8146616295928189418
 MeshFilter:
@@ -830,7 +834,7 @@ GameObject:
   - component: {fileID: 6426769558246821659}
   - component: {fileID: 4742899304751835689}
   m_Layer: 0
-  m_Name: Pillar
+  m_Name: NW Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -848,7 +852,7 @@ Transform:
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_Children: []
   m_Father: {fileID: 8146616295129793657}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &631263346568226581
 MeshFilter:

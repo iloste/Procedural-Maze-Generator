@@ -18,7 +18,7 @@ public class Cell
     public int Column { get; private set; }
     public Dictionary<Direction, Cell> neighbours = new Dictionary<Direction, Cell>();
     public List<Cell> Links { get; private set; }
-    public bool Visted { get; set; } = false;
+    public bool Visited { get; set; } = false;
 
     public Tile Tile { get; set; }
 
@@ -38,6 +38,7 @@ public class Cell
             }
 
         }
+
         return false;
     }
 
@@ -175,7 +176,31 @@ public class Cell
         }
 
         return null;
-        
+    }
+
+
+    /// <summary>
+    /// Returns a random unvisited neighbour. Returns null if there are none.
+    /// </summary>
+    /// <returns></returns>
+    public Cell RandomUnvisitedNeighbour()
+    {
+        List<Cell> unvisitedNeighbours = new List<Cell>();
+
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (!neighbours.ElementAt(i).Value.Visited)
+            {
+                unvisitedNeighbours.Add(neighbours.ElementAt(i).Value);
+            }
+        }
+
+        if (unvisitedNeighbours.Count == 0)
+        {
+            return null;
+        }
+
+        return unvisitedNeighbours[Random.Range(0, unvisitedNeighbours.Count)];
     }
 }
 
