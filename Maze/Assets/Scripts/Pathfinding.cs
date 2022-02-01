@@ -79,6 +79,7 @@ public class Pathfinding
         maxDistance = distance;
     }
 
+
     public int GetDistanceFromOrigin(Cell cell)
     {
         if (cell == null)
@@ -103,7 +104,8 @@ public class Pathfinding
          distances[cell.Row, cell.Column] = distance;
     }
 
-    public Stack<Cell> ShortestPath(Cell origin, Cell destination)
+
+    public Stack<Cell> ShortestPath(Cell origin, Cell destination, int mask = 0)
     {
         FloodGrid(origin);
         Origin = origin;

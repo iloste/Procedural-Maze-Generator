@@ -10,7 +10,7 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] Vector2Int gridSize;
     [SerializeField] bool braidMaze;
     [Tooltip("100% = no dead ends.")]
-    [SerializeField][Range(0, 100)] int braidPercentage;
+    [SerializeField] [Range(0, 100)] int braidPercentage;
     [SerializeField] bool displayDeadEnds;
     [SerializeField] int currentMask;
 
@@ -27,6 +27,7 @@ public class MazeGenerator : MonoBehaviour
         AldousBroderLive,
         RecursiveBacktracker,
         HuntAndKill,
+        LinkAllCells,
     }
 
     public enum Colouring
@@ -40,18 +41,27 @@ public class MazeGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        grid = new MyGrid("Assets/mazes/maze 1.txt");
-        //grid = new MyGrid(gridSize.x, gridSize.y);
-        GenerateMaze();
+        //grid = new MyGrid("Assets/mazes/maze.txt");
+        //GenerateMaze(Algorithm.RecursiveBacktracker, 1);
+        //GenerateMaze(Algorithm.LinkAllCells, 2);
+
+        grid = new MyGrid("Assets/mazes/maze 2.txt");
+        GenerateMaze(algorithm, currentMask);
+
+        // grid = new MyGrid(gridSize.x, gridSize.y);
+        // GenerateMaze(algorithm, currentMask);
+
+
+
         BraidMaze();
-        Pathfinding();
         DisplayGrid(grid);
+        Pathfinding();
         DisplayDeadEnds();
     }
 
 
     #region Start Functions
-    private void GenerateMaze()
+    private void GenerateMaze(Algorithm algorithm, int currentMask = 0)
     {
         switch (algorithm)
         {
@@ -72,6 +82,9 @@ public class MazeGenerator : MonoBehaviour
                 break;
             case Algorithm.HuntAndKill:
                 HuntAndKill(grid, currentMask);
+                break;
+            case Algorithm.LinkAllCells:
+                LinkAllCells(grid, currentMask);
                 break;
             default:
                 break;
@@ -173,7 +186,8 @@ public class MazeGenerator : MonoBehaviour
         {
             Cell cell = path.Pop();
             float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
-            cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
+            GameObject floor = cell.Tile.floor;
+            floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
         }
 
     }
@@ -469,4 +483,37 @@ public class MazeGenerator : MonoBehaviour
         }
     }
     #endregion
+
+    #region Link All Cells
+    /// <summary>
+    /// Links all the cells on a given mask.
+    /// </summary>
+    /// <param name="grid"></param>
+    /// <param name="mask"></param>
+    private void LinkAllCells(MyGrid grid, int mask = 0)
+    {
+        for (int row = 0; row < grid.Rows; row++)
+        {
+            for (int column = 0; column < grid.Columns; column++)
+            {
+                // will be null if the cell isn't on the mask
+                Cell cell = grid.GetCell(row, column, mask);
+
+                if (cell != null)
+                {
+                    List<Cell> neighbours = cell.GetNeighbours(mask);
+
+                    for (int i = 0; i < neighbours.Count; i++)
+                    {
+                        if (!cell.IsLinked(neighbours[i]))
+                        {
+                            cell.LinkCell(neighbours[i], true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #endregion
+
 }

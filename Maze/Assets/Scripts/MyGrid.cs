@@ -290,13 +290,19 @@ public class MyGrid
         //throw new System.Exception("cell does not exist");
     }
 
+    /// <summary>
+    /// Returns the given cell on the given mask. If not on the mask or the cell is otherwise invalid, returns null
+    /// </summary>
+    /// <param name="row"></param>
+    /// <param name="column"></param>
+    /// <param name="mask">If 0, returns the cell regardless of it's mask</param>
+    /// <returns></returns>
     public Cell GetCell(int row, int column, int mask = 0)
     {
         if (row >= 0 && row < rows)
         {
             if (column >= 0 && column < columns)
             {
-                //if (grid[row, column].Valid)
                 if (CellValid(row, column, mask))
                 {
                     return grid[row, column];

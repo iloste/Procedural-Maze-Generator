@@ -192,7 +192,7 @@ public class Cell
                 return null;
             }
         }
-       
+
     }
 
 
@@ -285,6 +285,27 @@ public class Cell
         }
 
         return visitedNeighbours[Random.Range(0, visitedNeighbours.Count)];
+    }
+
+
+    /// <summary>
+    /// Returns a list of all the neighbours on the given mask.
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    public List<Cell> GetNeighbours(int mask = 0)
+    {
+        List<Cell> validNeighbours = new List<Cell>();
+
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
+            {
+                validNeighbours.Add(neighbours.ElementAt(i).Value);
+            }
+        }
+
+        return validNeighbours;
     }
 
 }

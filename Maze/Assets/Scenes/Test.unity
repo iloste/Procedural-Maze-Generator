@@ -272,10 +272,10 @@ MonoBehaviour:
   algorithm: 5
   colouring: 0
   gridSize: {x: 20, y: 20}
-  braidMaze: 0
-  braidPercentage: 20
-  displayDeadEnds: 0
-  currentMask: 2
+  braidMaze: 1
+  braidPercentage: 0
+  displayDeadEnds: 1
+  currentMask: 1
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0
