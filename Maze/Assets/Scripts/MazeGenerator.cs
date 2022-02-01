@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MazeGenerator : MonoBehaviour
 {
@@ -11,8 +10,9 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] Vector2Int gridSize;
     [SerializeField] bool braidMaze;
     [Tooltip("100% = no dead ends.")]
-    [SerializeField] int braidPercentage;
+    [SerializeField][Range(0, 100)] int braidPercentage;
     [SerializeField] bool displayDeadEnds;
+    [SerializeField] int currentMask;
 
     MyGrid grid;
     Pathfinding pf;
@@ -31,6 +31,7 @@ public class MazeGenerator : MonoBehaviour
 
     public enum Colouring
     {
+        None,
         PathBetween,
         LongestPath,
         ColourMaze,
@@ -39,9 +40,19 @@ public class MazeGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // grid = new MyGrid("Assets/mazes/maze.txt");
-        grid = new MyGrid(gridSize.x, gridSize.y);
+        grid = new MyGrid("Assets/mazes/maze 1.txt");
+        //grid = new MyGrid(gridSize.x, gridSize.y);
+        GenerateMaze();
+        BraidMaze();
+        Pathfinding();
+        DisplayGrid(grid);
+        DisplayDeadEnds();
+    }
 
+
+    #region Start Functions
+    private void GenerateMaze()
+    {
         switch (algorithm)
         {
             case Algorithm.BinaryTree:
@@ -51,34 +62,40 @@ public class MazeGenerator : MonoBehaviour
                 SideWinder(grid);
                 break;
             case Algorithm.AldousBroder:
-                AldousBroder(grid);
+                AldousBroder(grid, currentMask);
                 break;
             case Algorithm.Wilson:
-                Wilson(grid);
+                Wilson(grid, currentMask);
                 break;
             case Algorithm.RecursiveBacktracker:
-                RecursiveBacktracker(grid);
+                RecursiveBacktracker(grid, currentMask);
                 break;
             case Algorithm.HuntAndKill:
-                HuntAndKill(grid);
+                HuntAndKill(grid, currentMask);
                 break;
             default:
                 break;
         }
+    }
 
 
-        pf = new Pathfinding(grid.Rows, grid.Columns);
-
+    private void BraidMaze()
+    {
         if (braidMaze)
         {
             grid.BraidMaze(braidPercentage);
         }
+    }
 
-        DisplayGrid(grid);
 
+    private void Pathfinding()
+    {
+        pf = new Pathfinding(grid.Rows, grid.Columns);
 
         switch (colouring)
         {
+            case Colouring.None:
+                break;
             case Colouring.PathBetween:
                 DisplayPath(pf.ShortestPath(grid.GetCell(0, grid.Rows - 1), grid.GetCell(grid.Columns - 1, 0)));
                 break;
@@ -92,13 +109,7 @@ public class MazeGenerator : MonoBehaviour
             default:
                 break;
         }
-
-        if (displayDeadEnds)
-        {
-            DisplayDeadEnds();
-        }
     }
-
 
 
 
@@ -169,15 +180,18 @@ public class MazeGenerator : MonoBehaviour
 
     void DisplayDeadEnds()
     {
-        List<Cell> deadEnds = grid.GetDeadEnds();
-
-        for (int i = 0; i < deadEnds.Count; i++)
+        if (displayDeadEnds)
         {
-            deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
+            List<Cell> deadEnds = grid.GetDeadEnds();
 
+            for (int i = 0; i < deadEnds.Count; i++)
+            {
+                deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
+            }
         }
     }
 
+    #endregion
 
 
     #region Binary Tree
@@ -288,16 +302,16 @@ public class MazeGenerator : MonoBehaviour
 
 
     #region Aldous-Broder
-    private void AldousBroder(MyGrid grid)
+    private void AldousBroder(MyGrid grid, int mask = 0)
     {
-        int cellCount = grid.Count;
-        Cell currentCell = grid.RandomCell();
+        int cellCount = grid.GetCellCount(mask);
+        Cell currentCell = grid.GetRandomCell(mask);
         currentCell.Visited = true;
         cellCount--;
 
         while (cellCount > 0)
         {
-            Cell neighbour = currentCell.RandomNeighbour();
+            Cell neighbour = currentCell.GetRandomNeighbour(mask);
 
             if (!neighbour.Visited)
             {
@@ -315,14 +329,14 @@ public class MazeGenerator : MonoBehaviour
     #region Aldous-Broder Live
     private void AldousBroderLive(MyGrid grid)
     {
-        int cellCount = grid.Count;
-        Cell currentCell = grid.RandomCell();
+        int cellCount = grid.GetCellCount();
+        Cell currentCell = grid.GetRandomCell();
         currentCell.Visited = true;
         cellCount--;
 
         while (cellCount > 0)
         {
-            Cell neighbour = currentCell.RandomNeighbour();
+            Cell neighbour = currentCell.GetRandomNeighbour();
 
             if (!neighbour.Visited)
             {
@@ -338,11 +352,11 @@ public class MazeGenerator : MonoBehaviour
 
 
     #region Wilson
-    private void Wilson(MyGrid grid)
+    private void Wilson(MyGrid grid, int mask = 0)
     {
-        int cellCount = grid.Count;
-        Cell currentCell = grid.RandomCell();
-        grid.RandomCell().Visited = true;
+        int cellCount = grid.GetCellCount(mask);
+        Cell currentCell = grid.GetRandomCell(mask);
+        grid.GetRandomCell(mask).Visited = true;
         cellCount--;
         Stack<Cell> stack = new Stack<Cell>();
 
@@ -350,11 +364,11 @@ public class MazeGenerator : MonoBehaviour
         {
             while (currentCell.Visited)
             {
-                currentCell = grid.RandomCell();
+                currentCell = grid.GetRandomCell(mask);
             }
-            stack.Push(currentCell);
 
-            Cell neighbour = currentCell.RandomNeighbour();
+            stack.Push(currentCell);
+            Cell neighbour = currentCell.GetRandomNeighbour(mask);
 
             if (neighbour.Visited)
             {
@@ -394,16 +408,17 @@ public class MazeGenerator : MonoBehaviour
 
 
     #region Recursive Backtracker
-    private void RecursiveBacktracker(MyGrid grid)
+    private void RecursiveBacktracker(MyGrid grid, int mask = 0)
     {
         Stack<Cell> cells = new Stack<Cell>();
-        cells.Push(grid.GetCell(0, 0));
+        cells.Push(grid.GetRandomCell(mask));
+        //cells.Push(grid.GetCell(0, 0, mask));
         cells.Peek().Visited = true;
 
         while (cells.Count > 0)
         {
             Cell currentCell = cells.Peek();
-            Cell neighbour = currentCell.RandomUnvisitedNeighbour();
+            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
 
             if (neighbour != null)
             {
@@ -416,23 +431,22 @@ public class MazeGenerator : MonoBehaviour
                 cells.Pop();
             }
         }
-
     }
 
     #endregion
 
 
     #region HuntAndKill
-    private void HuntAndKill(MyGrid grid)
+    private void HuntAndKill(MyGrid grid, int mask = 0)
     {
-        int cellCount = grid.Count;
-        Cell currentCell = grid.RandomCell();
+        int cellCount = grid.GetCellCount(mask);
+        Cell currentCell = grid.GetRandomCell(mask);
         currentCell.Visited = true;
         cellCount--;
 
         while (cellCount > 0)
         {
-            Cell neighbour = currentCell.RandomUnvisitedNeighbour();
+            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
 
             if (neighbour != null)
             {
@@ -445,9 +459,9 @@ public class MazeGenerator : MonoBehaviour
             {
                 if (cellCount > 0)
                 {
-                    currentCell = grid.GetUnvisitedCell(true);
+                    currentCell = grid.GetUnvisitedCell(true, mask);
                     currentCell.Visited = true;
-                    neighbour = currentCell.GetRandomVisitedNeighbour();
+                    neighbour = currentCell.GetRandomVisitedNeighbour(mask);
                     currentCell.LinkCell(neighbour, true);
                     cellCount--;
                 }
