@@ -10,7 +10,7 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] Vector2Int gridSize;
     [SerializeField] bool braidMaze;
     [Tooltip("100% = no dead ends.")]
-    [SerializeField] int braidPercentage;
+    [SerializeField][Range(0, 100)] int braidPercentage;
     [SerializeField] bool displayDeadEnds;
     [SerializeField] int currentMask;
 
@@ -76,7 +76,6 @@ public class MazeGenerator : MonoBehaviour
             default:
                 break;
         }
-
     }
 
 
@@ -111,6 +110,8 @@ public class MazeGenerator : MonoBehaviour
                 break;
         }
     }
+
+
 
     ///To do: create a seperate class for displaying grids?
     void DisplayGrid(MyGrid grid)
