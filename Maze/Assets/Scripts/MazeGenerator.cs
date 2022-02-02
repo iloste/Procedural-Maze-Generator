@@ -45,7 +45,10 @@ public class MazeGenerator : MonoBehaviour
         //GenerateMaze(Algorithm.RecursiveBacktracker, 1);
         //GenerateMaze(Algorithm.LinkAllCells, 2);
 
-        grid = new MyGrid("Assets/mazes/maze 2.txt");
+        //grid = new MyGrid("Assets/mazes/maze 1.txt");
+        //GenerateMaze(algorithm, 0);
+
+        grid = new MyGrid("Assets/mazes/T maze.txt");
         GenerateMaze(algorithm, currentMask);
 
         // grid = new MyGrid(gridSize.x, gridSize.y);
