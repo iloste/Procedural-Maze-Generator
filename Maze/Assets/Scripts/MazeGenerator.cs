@@ -13,6 +13,9 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] [Range(0, 100)] int braidPercentage;
     [SerializeField] bool displayDeadEnds;
     [SerializeField] int currentMask;
+    [SerializeField] MazeDisplay mazeDisplay;
+    [SerializeField] bool useCuboidMaze;
+
 
     MyGrid grid;
     Pathfinding pf;
@@ -41,25 +44,50 @@ public class MazeGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //grid = new MyGrid("Assets/mazes/maze.txt");
-        //GenerateMaze(Algorithm.RecursiveBacktracker, 1);
-        //GenerateMaze(Algorithm.LinkAllCells, 2);
+        if (!useCuboidMaze)
+        {
+            //grid = new MyGrid("Assets/mazes/maze.txt");
+            //GenerateMaze(Algorithm.RecursiveBacktracker, 1);
+            //GenerateMaze(Algorithm.LinkAllCells, 2);
 
-        //grid = new MyGrid("Assets/mazes/maze 1.txt");
-        //GenerateMaze(algorithm, 0);
+            //grid = new MyGrid("Assets/mazes/maze 1.txt");
+            //GenerateMaze(algorithm, 0);
 
-        grid = new MyGrid("Assets/mazes/T maze.txt");
-        GenerateMaze(algorithm, currentMask);
+            //grid = new MyGrid("Assets/mazes/T maze.txt");
+            //GenerateMaze(algorithm, currentMask);
 
-        // grid = new MyGrid(gridSize.x, gridSize.y);
-        // GenerateMaze(algorithm, currentMask);
+            grid = new MyGrid(gridSize.x, gridSize.y);
+            GenerateMaze(algorithm, currentMask);
 
+            BraidMaze();
+            DisplayGrid(grid);
+            Pathfinding();
+            DisplayDeadEnds();
+            grid.GetCell(0, 0).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            grid.GetCell(0, 0).neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+        }
+        else
+        {
+            CuboidGrid cuboidGrid = new CuboidGrid(3, 3);
+            RecursiveBacktracker(cuboidGrid.GetGrid(0));
 
+            // don't hard code the 6
+            for (int i = 0; i < 6; i++)
+            {
+                mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
+            }
 
-        BraidMaze();
-        DisplayGrid(grid);
-        Pathfinding();
-        DisplayDeadEnds();
+            mazeDisplay.OrientateSurfaces();
+            //cuboidGrid.GetGrid(0).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            //cuboidGrid.GetGrid(0).grid[0, 0].neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            List<Cell> cells = cuboidGrid.GetGridFrontier(cuboidGrid.GetGrid(0), Cell.Direction.West);
+            for (int i = 0; i < cells.Count; i++)
+            {
+                cells[i].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+                cells[i].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            }
+            // cuboidGrid.GetGrid(1).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+        }
     }
 
 
@@ -429,7 +457,30 @@ public class MazeGenerator : MonoBehaviour
     {
         Stack<Cell> cells = new Stack<Cell>();
         cells.Push(grid.GetRandomCell(mask));
-        //cells.Push(grid.GetCell(0, 0, mask));
+        cells.Peek().Visited = true;
+
+        while (cells.Count > 0)
+        {
+            Cell currentCell = cells.Peek();
+            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
+
+            if (neighbour != null)
+            {
+                currentCell.LinkCell(neighbour, true);
+                neighbour.Visited = true;
+                cells.Push(neighbour);
+            }
+            else
+            {
+                cells.Pop();
+            }
+        }
+    }
+    private void RecursiveBacktracker(GridStruct grid, int mask = 0)
+    {
+        Stack<Cell> cells = new Stack<Cell>();
+        // cells.Push(grid.GetRandomCell(mask));
+        cells.Push(grid.grid[0, 0]);
         cells.Peek().Visited = true;
 
         while (cells.Count > 0)

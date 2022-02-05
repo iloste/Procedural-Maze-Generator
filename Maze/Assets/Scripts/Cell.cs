@@ -21,6 +21,22 @@ public class Cell
     public bool Visited { get; set; } = false;
     public int Mask { get; set; }
     public Tile Tile { get; set; }
+    public int GridNum { get; set; }
+
+
+    public Cell(int row, int column)
+    {
+        this.Row = row;
+        this.Column = column;
+        Links = new List<Cell>();
+    }
+
+
+    public Cell(int row, int column, int gridNum) : this(row, column)
+    {
+        GridNum = gridNum;
+    }
+
 
     public bool IsLinked(Cell cell)
     {
@@ -58,12 +74,7 @@ public class Cell
     }
 
 
-    public Cell(int row, int column)
-    {
-        this.Row = row;
-        this.Column = column;
-        Links = new List<Cell>();
-    }
+
 
     public void SetNeighour(Cell cell, Direction direction)
     {
@@ -101,6 +112,29 @@ public class Cell
                 default:
                     break;
             }
+        }
+    }
+
+
+    public void SetNeighour(Cell cell, Direction direction1, Direction direction2)
+    {
+        if (cell == null)
+        {
+            return;
+        }
+        else if (cell.Mask == -1 || Mask == -1)
+        {
+            return;
+        }
+
+        if (!neighbours.ContainsKey(direction1) && !cell.neighbours.ContainsKey(direction2))
+        {
+            neighbours.Add(direction1, cell);
+            cell.neighbours.Add(direction2, this);
+        }
+        else
+        {
+            Debug.LogError("Neighbour Exists");
         }
     }
 

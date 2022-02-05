@@ -4,10 +4,9 @@ using UnityEngine;
 
 public class MyGrid
 {
-    protected int rows, columns;
-    protected Cell[,] grid;
-    //private bool[,] cellValidity;
-    private int[] cellCounts;
+    private int rows, columns;
+    private Cell[,] grid;
+    protected int[] cellCounts;
 
     public int Rows { get { return rows; } }
     public int Columns { get { return columns; } }
@@ -44,7 +43,8 @@ public class MyGrid
         ConfigureGrid();
     }
 
-    public int GetCellCount(int mask = 0)
+
+    public virtual int GetCellCount(int mask = 0)
     {
         if (mask < 0 || mask > cellCounts.Length - 1)
         {
@@ -61,7 +61,7 @@ public class MyGrid
     /// Finds and returns the first valid, unvisited cell found. Returns null if there are none.
     /// </summary>
     /// <returns></returns>
-    public Cell GetUnvisitedCell(bool withVisitedNeighbour, int mask = 0)
+    public virtual Cell GetUnvisitedCell(bool withVisitedNeighbour, int mask = 0)
     {
         for (int row = 0; row < Rows; row++)
         {
@@ -93,7 +93,7 @@ public class MyGrid
     /// Finds and resturns all of the cells with only 1 link.
     /// </summary>
     /// <returns></returns>
-    public List<Cell> GetDeadEnds()
+    public virtual List<Cell> GetDeadEnds()
     {
         List<Cell> deadEnds = new List<Cell>();
 
@@ -119,7 +119,7 @@ public class MyGrid
     /// Finds the dead ends of the grid and links them to other cells so they're no longer deadends.
     /// </summary>
     /// <param name="percentage">The percent of dead ends that will be linked.</param>
-    public void BraidMaze(int percentage)
+    public virtual void BraidMaze(int percentage)
     {
         List<Cell> deadEnds = GetDeadEnds();
         int cellsRemaining = (int)(deadEnds.Count * (percentage / 100f));
@@ -158,7 +158,7 @@ public class MyGrid
     }
 
 
-    public void SetupMask(string[] map)
+    protected virtual void SetupMask(string[] map)
     {
         for (int row = 0; row < rows; row++)
         {
@@ -181,7 +181,7 @@ public class MyGrid
     }
 
 
-    public void SetupMask()
+    protected virtual void SetupMask()
     {
         for (int row = 0; row < rows; row++)
         {
@@ -195,7 +195,7 @@ public class MyGrid
     }
 
 
-    public bool CellValid(Cell cell, int mask = 0)
+    public virtual bool CellValid(Cell cell, int mask = 0)
     {
         if (cell == null)
         {
@@ -220,7 +220,7 @@ public class MyGrid
         }
     }
 
-    public bool CellValid(int row, int column, int mask = 0)
+    public virtual bool CellValid(int row, int column, int mask = 0)
     {
         Cell cell = grid[row, column];
         return CellValid(cell, mask);
@@ -267,6 +267,9 @@ public class MyGrid
     }
 
 
+    /// <summary>
+    /// Sets the Neighbours of each cell
+    /// </summary>
     protected virtual void ConfigureGrid()
     {
         for (int row = 0; row < rows; row++)
@@ -287,7 +290,7 @@ public class MyGrid
     /// </summary>
     /// <param name="mask"></param>
     /// <returns></returns>
-    public Cell GetRandomCell(int mask = 0)
+    public virtual Cell GetRandomCell(int mask = 0)
     {
         //To do: make a list of each cell in each mask so you can make this more efficient.
         // You could store them as just the coordinates in a list of vector2.
