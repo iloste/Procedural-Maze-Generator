@@ -78,14 +78,23 @@ public class MazeGenerator : MonoBehaviour
             }
 
             mazeDisplay.OrientateSurfaces();
-            //cuboidGrid.GetGrid(0).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            //cuboidGrid.GetGrid(0).grid[0, 0].neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+
+            //cuboidGrid.GetGrid(0).grid[0, 2].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            //cuboidGrid.GetGrid(0).grid[0, 2].neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            //cuboidGrid.GetGrid(0).grid[2, 2].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            //cuboidGrid.GetGrid(0).grid[2, 2].neighbours[Cell.Direction.East].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            //cuboidGrid.GetGrid(0).grid[2, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.green;
+            //cuboidGrid.GetGrid(0).grid[2, 0].neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.green;
+            //cuboidGrid.GetGrid(0).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.yellow;
+            //cuboidGrid.GetGrid(0).grid[0, 0].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.yellow;
+
+
             List<Cell> cells = cuboidGrid.GetGridFrontier(cuboidGrid.GetGrid(0), Cell.Direction.West);
-            for (int i = 0; i < cells.Count; i++)
-            {
-                cells[i].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-                cells[i].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            }
+            //for (int i = 0; i < cells.Count; i++)
+            //{
+            //    cells[i].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            //    cells[i].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            //}
             // cuboidGrid.GetGrid(1).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
         }
     }

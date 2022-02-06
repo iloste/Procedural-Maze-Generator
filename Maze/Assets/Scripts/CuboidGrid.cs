@@ -11,13 +11,13 @@ public class CuboidGrid : MyGrid
         grids = new GridStruct[6];
     }
 
-    public CuboidGrid(int rows, int columns) : this()
+    public CuboidGrid(int columns, int rows) : this()
     {
         for (int i = 0; i < grids.Length; i++)
         {
-            grids[i].rows = rows;
             grids[i].columns = columns;
-            grids[i].grid = new Cell[rows, columns];
+            grids[i].rows = rows;
+            grids[i].grid = new Cell[columns, rows];
             grids[i].ID = i;
         }
 
@@ -36,11 +36,11 @@ public class CuboidGrid : MyGrid
     {
         for (int i = 0; i < grids.Length; i++)
         {
-            for (int row = 0; row < grids[i].rows; row++)
+            for (int row = 0; row < grids[i].columns; row++)
             {
-                for (int column = 0; column < grids[i].columns; column++)
+                for (int column = 0; column < grids[i].rows; column++)
                 {
-                    grids[i].grid[row, column] = new Cell(row, column, i);
+                    grids[i].grid[column, row] = new Cell(column, row, i);
                 }
             }
         }
@@ -59,7 +59,7 @@ public class CuboidGrid : MyGrid
                 for (int column = 0; column < grids[i].columns; column++)
                 {
                     int mask = 1;
-                    grids[i].grid[row, column].Mask = mask;
+                    grids[i].grid[column, row].Mask = mask;
                     cellCounts[mask]++;
                 }
             }
@@ -78,19 +78,19 @@ public class CuboidGrid : MyGrid
             {
                 for (int column = 0; column < grids[gridID].columns; column++)
                 {
-                    grids[gridID].grid[row, column].SetNeighour(GetCell(row - 1, column, gridID), Cell.Direction.North);
-                    grids[gridID].grid[row, column].SetNeighour(GetCell(row + 1, column, gridID), Cell.Direction.South);
-                    grids[gridID].grid[row, column].SetNeighour(GetCell(row, column + 1, gridID), Cell.Direction.East);
-                    grids[gridID].grid[row, column].SetNeighour(GetCell(row, column - 1, gridID), Cell.Direction.West);
+                    grids[gridID].grid[column, row].SetNeighour(GetCell(column, row + 1, gridID), Cell.Direction.North);
+                    grids[gridID].grid[column, row].SetNeighour(GetCell(column, row - 1, gridID), Cell.Direction.South);
+                    grids[gridID].grid[column, row].SetNeighour(GetCell(column + 1, row, gridID), Cell.Direction.East);
+                    grids[gridID].grid[column, row].SetNeighour(GetCell(column - 1, row, gridID), Cell.Direction.West);
                 }
             }
         }
 
-        // linking grid 0
+        //// linking grid 0
         SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.North), Cell.Direction.North, GetGridFrontier(grids[3], Cell.Direction.South), Cell.Direction.South, false);
         SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.South), Cell.Direction.South, GetGridFrontier(grids[1], Cell.Direction.North), Cell.Direction.North, false);
-        SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.East), Cell.Direction.East, GetGridFrontier(grids[5], Cell.Direction.North), Cell.Direction.North, true);
-        SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.West), Cell.Direction.West, GetGridFrontier(grids[4], Cell.Direction.North), Cell.Direction.North, false);
+        SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.East), Cell.Direction.East, GetGridFrontier(grids[5], Cell.Direction.North), Cell.Direction.North, false);
+        SetFrontierNeighbours(GetGridFrontier(grids[0], Cell.Direction.West), Cell.Direction.West, GetGridFrontier(grids[4], Cell.Direction.North), Cell.Direction.North, true);
 
         // linking grid 1
         SetFrontierNeighbours(GetGridFrontier(grids[1], Cell.Direction.South), Cell.Direction.South, GetGridFrontier(grids[2], Cell.Direction.North), Cell.Direction.North, false);
@@ -99,8 +99,8 @@ public class CuboidGrid : MyGrid
 
         // linking grid 2
         SetFrontierNeighbours(GetGridFrontier(grids[2], Cell.Direction.South), Cell.Direction.South, GetGridFrontier(grids[3], Cell.Direction.North), Cell.Direction.North, false);
-        SetFrontierNeighbours(GetGridFrontier(grids[2], Cell.Direction.East), Cell.Direction.East, GetGridFrontier(grids[5], Cell.Direction.South), Cell.Direction.South, false);
-        SetFrontierNeighbours(GetGridFrontier(grids[2], Cell.Direction.West), Cell.Direction.West, GetGridFrontier(grids[4], Cell.Direction.South), Cell.Direction.South, true);
+        SetFrontierNeighbours(GetGridFrontier(grids[2], Cell.Direction.East), Cell.Direction.East, GetGridFrontier(grids[5], Cell.Direction.South), Cell.Direction.South, true);
+        SetFrontierNeighbours(GetGridFrontier(grids[2], Cell.Direction.West), Cell.Direction.West, GetGridFrontier(grids[4], Cell.Direction.South), Cell.Direction.South, false);
 
         // linking grid 3
         SetFrontierNeighbours(GetGridFrontier(grids[3], Cell.Direction.East), Cell.Direction.East, GetGridFrontier(grids[5], Cell.Direction.East), Cell.Direction.East, true);
@@ -125,25 +125,25 @@ public class CuboidGrid : MyGrid
             case Cell.Direction.North:
                 for (int column = 0; column < grid.columns; column++)
                 {
-                    cells.Add(grid.grid[0, column]);
+                    cells.Add(grid.grid[column, grid.rows - 1]);
                 }
                 break;
             case Cell.Direction.South:
                 for (int column = 0; column < grid.columns; column++)
                 {
-                    cells.Add(grid.grid[grid.rows - 1, column]);
+                    cells.Add(grid.grid[column, 0]);
                 }
                 break;
             case Cell.Direction.East:
                 for (int row = 0; row < grid.rows; row++)
                 {
-                    cells.Add(grid.grid[row, grid.columns - 1]);
+                    cells.Add(grid.grid[grid.columns - 1, row]);
                 }
                 break;
             case Cell.Direction.West:
                 for (int row = 0; row < grid.rows; row++)
                 {
-                    cells.Add(grid.grid[row, 0]);
+                    cells.Add(grid.grid[0, row]);
                 }
                 break;
         }
@@ -209,15 +209,15 @@ public class CuboidGrid : MyGrid
     }
 
 
-    public Cell GetCell(int row, int column, int gridID, int mask = 0)
+    public Cell GetCell(int column, int row, int gridID, int mask = 0)
     {
         if (row >= 0 && row < grids[gridID].rows)
         {
             if (column >= 0 && column < grids[gridID].columns)
             {
-                if (CellValid(row, column, gridID, mask))
+                if (CellValid(column, row, gridID, mask))
                 {
-                    return grids[gridID].grid[row, column];
+                    return grids[gridID].grid[column, row];
                 }
                 else
                 {

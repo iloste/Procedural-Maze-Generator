@@ -5,7 +5,7 @@ using UnityEngine;
 public struct GridStruct 
 {
     public Cell[,] grid;
-    public int rows;
     public int columns;
+    public int rows;
     public int ID;
 }

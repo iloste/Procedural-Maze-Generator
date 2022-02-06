@@ -10,14 +10,14 @@ public class MazeDisplay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+       // TestGrid();
     }
 
     public void DisplayGrid(GridStruct grid, int direction)
     {
-        for (int row = 0; row < grid.rows; row++)
+        for (int row = 0; row < grid.columns; row++)
         {
-            for (int column = 0; column < grid.columns; column++)
+            for (int column = 0; column < grid.rows; column++)
             {
                 Cell cell = grid.grid[row, column];
 
@@ -60,6 +60,38 @@ public class MazeDisplay : MonoBehaviour
 
     }
 
-  
+    private void TestGrid()
+    {
+        Tile[,] cells = new Tile[2, 4];
+        float i = 0;
+
+        for (int row = 0; row < cells.GetLength(0); row++)
+        {
+            for (int column = 0; column < cells.GetLength(1); column++)
+            {
+                cells[row, column] = Instantiate(tilePrefab, new Vector3(row * 1.4f, 0, column * 1.4f) + new Vector3(5, 0, 5), Quaternion.identity).GetComponent<Tile>();
+
+            }
+        }
+
+
+
+        for (int row = 0; row < cells.GetLength(1); row++)
+        {
+            for (int column = 0; column < cells.GetLength(0); column++)
+            {
+                cells[column, row].floor.GetComponent<MeshRenderer>().material.color = new Color(i, 0, 0);
+                i += 0.1f;
+            }
+        }
+
+
+        //cells[0, 0].floor.GetComponent<MeshRenderer>().material.color = new Color(i, 0, 0);
+        //cells[1, 0].floor.GetComponent<MeshRenderer>().material.color = new Color(i, 0, 0);
+        //cells[2, 0].floor.GetComponent<MeshRenderer>().material.color = new Color(i, 0, 0);
+
+
+    }
+
 
 }
