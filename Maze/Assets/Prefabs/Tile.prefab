@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6742869819169998868}
   - component: {fileID: 8235270799675030577}
   m_Layer: 0
-  m_Name: SE Pillar
+  m_Name: NE Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 8432174714237723510}
   - component: {fileID: 2228862769773841460}
   m_Layer: 0
-  m_Name: SW Pillar
+  m_Name: SE Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -203,7 +203,7 @@ GameObject:
   - component: {fileID: 158825786079760011}
   - component: {fileID: 3920894892901332547}
   m_Layer: 0
-  m_Name: NE Pillar
+  m_Name: NW Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -298,7 +298,7 @@ GameObject:
   - component: {fileID: 8146616294784822403}
   - component: {fileID: 8146616294784822402}
   m_Layer: 0
-  m_Name: East Wall
+  m_Name: North Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -393,7 +393,7 @@ GameObject:
   - component: {fileID: 8146616295049793257}
   - component: {fileID: 8146616295049793256}
   m_Layer: 0
-  m_Name: South Wall
+  m_Name: East Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -527,15 +527,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f969a50cf92cd4542949edec9f5ea3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  northWall: {fileID: 8146616295143343908}
-  southWall: {fileID: 8146616295049793259}
-  eastWall: {fileID: 8146616294784822413}
-  westWall: {fileID: 8146616295928189431}
+  northWall: {fileID: 8146616294784822413}
+  southWall: {fileID: 8146616295928189431}
+  eastWall: {fileID: 8146616295049793259}
+  westWall: {fileID: 8146616295143343908}
   floor: {fileID: 8146616295808926577}
-  northEastPillar: {fileID: 3886868527316124887}
-  northWestPillar: {fileID: 8925736856619139359}
-  southEastPillar: {fileID: 1188839709758761472}
-  southWestPillar: {fileID: 3711627211556190324}
+  northEastPillar: {fileID: 1188839709758761472}
+  northWestPillar: {fileID: 3886868527316124887}
+  southEastPillar: {fileID: 3711627211556190324}
+  southWestPillar: {fileID: 8925736856619139359}
 --- !u!1 &8146616295143343908
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,7 +549,7 @@ GameObject:
   - component: {fileID: 8146616295143343898}
   - component: {fileID: 8146616295143343909}
   m_Layer: 0
-  m_Name: North Wall
+  m_Name: West Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -739,7 +739,7 @@ GameObject:
   - component: {fileID: 8146616295928189429}
   - component: {fileID: 8146616295928189428}
   m_Layer: 0
-  m_Name: West Wall
+  m_Name: South Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -834,7 +834,7 @@ GameObject:
   - component: {fileID: 6426769558246821659}
   - component: {fileID: 4742899304751835689}
   m_Layer: 0
-  m_Name: NW Pillar
+  m_Name: SW Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

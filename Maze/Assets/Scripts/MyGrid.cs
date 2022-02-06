@@ -17,13 +17,13 @@ public class MyGrid
         cellCounts = new int[9];
     }
 
-    public MyGrid(int rows, int columns) : this()
+    public MyGrid(int columns, int rows) : this()
     {
         this.rows = rows;
         this.columns = columns;
-        cellCounts[0] = rows * columns;
+        cellCounts[0] = columns * rows;
 
-        grid = new Cell[rows, columns];
+        grid = new Cell[columns, rows];
 
         PrepareGrid();
         SetupMask();
@@ -67,18 +67,18 @@ public class MyGrid
         {
             for (int column = 0; column < Columns; column++)
             {
-                if (mask == 0 || mask == grid[row, column].Mask)
+                if (mask == 0 || mask == grid[column, row].Mask)
                 // if (cellValidity[row, column])
                 {
-                    if (!grid[row, column].Visited)
+                    if (!grid[column, row].Visited)
                     {
                         if (!withVisitedNeighbour)
                         {
-                            return grid[row, column];
+                            return grid[column, row];
                         }
-                        else if (grid[row, column].HasVisitedNeighbour())
+                        else if (grid[column, row].HasVisitedNeighbour())
                         {
-                            return grid[row, column];
+                            return grid[column, row];
                         }
                     }
                 }
@@ -101,11 +101,11 @@ public class MyGrid
         {
             for (int column = 0; column < Columns; column++)
             {
-                if (grid[row, column] != null)
+                if (grid[column, row] != null)
                 {
-                    if (grid[row, column].Links.Count == 1)
+                    if (grid[column, row].Links.Count == 1)
                     {
-                        deadEnds.Add(grid[row, column]);
+                        deadEnds.Add(grid[column, row]);
                     }
                 }
             }
@@ -166,7 +166,7 @@ public class MyGrid
             {
                 int mask;
 
-                if (int.TryParse(map[row][column].ToString(), out mask))
+                if (int.TryParse(map[column][row].ToString(), out mask))
                 {
                     cellCounts[mask]++;
                 }
@@ -175,7 +175,7 @@ public class MyGrid
                     mask = -1;
                 }
 
-                grid[row, column].Mask = mask;
+                grid[column, row].Mask = mask;
             }
         }
     }
@@ -188,7 +188,7 @@ public class MyGrid
             for (int column = 0; column < columns; column++)
             {
                 int mask = 1;
-                grid[row, column].Mask = mask;
+                grid[column, row].Mask = mask;
                 cellCounts[mask]++;
             }
         }
@@ -220,9 +220,9 @@ public class MyGrid
         }
     }
 
-    public virtual bool CellValid(int row, int column, int mask = 0)
+    public virtual bool CellValid(int column, int row, int mask = 0)
     {
-        Cell cell = grid[row, column];
+        Cell cell = grid[column, row];
         return CellValid(cell, mask);
     }
 
@@ -234,15 +234,15 @@ public class MyGrid
     /// <param name="column"></param>
     /// <param name="mask">If 0, returns the cell regardless of it's mask</param>
     /// <returns></returns>
-    public Cell GetCell(int row, int column, int mask = 0)
+    public Cell GetCell(int column, int row, int mask = 0)
     {
         if (row >= 0 && row < rows)
         {
             if (column >= 0 && column < columns)
             {
-                if (CellValid(row, column, mask))
+                if (CellValid(column, row, mask))
                 {
-                    return grid[row, column];
+                    return grid[column, row];
                 }
                 else
                 {
@@ -261,7 +261,7 @@ public class MyGrid
         {
             for (int column = 0; column < columns; column++)
             {
-                grid[row, column] = new Cell(row, column);
+                grid[column, row] = new Cell(column, row);
             }
         }
     }
@@ -276,10 +276,10 @@ public class MyGrid
         {
             for (int column = 0; column < columns; column++)
             {
-                grid[row, column].SetNeighour(GetCell(row - 1, column), Cell.Direction.North);
-                grid[row, column].SetNeighour(GetCell(row + 1, column), Cell.Direction.South);
-                grid[row, column].SetNeighour(GetCell(row, column + 1), Cell.Direction.East);
-                grid[row, column].SetNeighour(GetCell(row, column - 1), Cell.Direction.West);
+                grid[column, row].SetNeighour(GetCell(column, row + 1), Cell.Direction.North);
+                grid[column, row].SetNeighour(GetCell(column, row - 1), Cell.Direction.South);
+                grid[column, row].SetNeighour(GetCell(column + 1, row), Cell.Direction.East);
+                grid[column, row].SetNeighour(GetCell(column - 1, row), Cell.Direction.West);
             }
         }
     }
@@ -294,14 +294,14 @@ public class MyGrid
     {
         //To do: make a list of each cell in each mask so you can make this more efficient.
         // You could store them as just the coordinates in a list of vector2.
-        int row, column;
+        int column, row;
         Cell cell;
 
         do
         {
+            column = Random.Range(0, Columns);
             row = Random.Range(0, Rows);
-            column = Random.Range(0, columns);
-            cell = GetCell(row, column);
+            cell = GetCell(column, row);
 
             if (cell.Mask == -1 || (mask != 0 && cell.Mask != mask))
             {
@@ -310,6 +310,6 @@ public class MyGrid
 
         } while (cell == null);
 
-        return GetCell(row, column);
+        return GetCell(column, row);
     }
 }

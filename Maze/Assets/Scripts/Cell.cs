@@ -24,7 +24,7 @@ public class Cell
     public int GridNum { get; set; }
 
 
-    public Cell(int row, int column)
+    public Cell(int column, int row)
     {
         this.Row = row;
         this.Column = column;
@@ -226,7 +226,6 @@ public class Cell
                 return null;
             }
         }
-
     }
 
 

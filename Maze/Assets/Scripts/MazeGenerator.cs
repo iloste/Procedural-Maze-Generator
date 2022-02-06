@@ -63,8 +63,10 @@ public class MazeGenerator : MonoBehaviour
             DisplayGrid(grid);
             Pathfinding();
             DisplayDeadEnds();
-            grid.GetCell(0, 0).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            grid.GetCell(0, 0).neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            // grid.GetCell(0, 5).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            //grid.GetCell(0, 5).neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            //grid.GetCell(1, 0).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            //grid.GetCell(0, 0).neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
         }
         else
         {
@@ -143,7 +145,7 @@ public class MazeGenerator : MonoBehaviour
 
     private void Pathfinding()
     {
-        pf = new Pathfinding(grid.Rows, grid.Columns);
+        pf = new Pathfinding(grid.Columns, grid.Rows);
 
         switch (colouring)
         {
@@ -156,7 +158,7 @@ public class MazeGenerator : MonoBehaviour
                 DisplayPath(pf.FindLongestPath(grid, grid.GetCell(0, 0)));
                 break;
             case Colouring.ColourMaze:
-                pf.FloodGrid(grid.GetCell(grid.Rows / 2, grid.Columns / 2));
+                pf.FloodGrid(grid.GetCell(grid.Columns / 2, grid.Rows / 2));
                 DisplayGridColour(grid, pf.maxDistance);
                 break;
             default:
@@ -173,12 +175,12 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int column = 0; column < grid.Columns; column++)
             {
-                Cell cell = grid.GetCell(row, column);
+                Cell cell = grid.GetCell(column, row);
 
                 //  if (cell != null && grid.CellValid(cell))
                 if (cell != null)
                 {
-                    Tile tile = Instantiate(tilePrefab, new Vector3(row * 1.4f, 0, column * 1.4f), Quaternion.identity).GetComponent<Tile>();
+                    Tile tile = Instantiate(tilePrefab, new Vector3(column * 1.4f, 0, row * 1.4f), Quaternion.identity).GetComponent<Tile>();
                     cell.Tile = tile;
 
                     if (cell.IsLinked(Cell.Direction.North))
@@ -209,15 +211,16 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int column = 0; column < grid.Columns; column++)
             {
-                if (grid.CellValid(row, column))
+                if (grid.CellValid(column, row))
                 {
-                    Cell cell = grid.GetCell(row, column);
+                    Cell cell = grid.GetCell(column, row);
                     float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
                     cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
                 }
             }
         }
     }
+
 
     void DisplayPath(Stack<Cell> path)
     {
@@ -229,8 +232,8 @@ public class MazeGenerator : MonoBehaviour
             GameObject floor = cell.Tile.floor;
             floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
         }
-
     }
+
 
     void DisplayDeadEnds()
     {
@@ -260,7 +263,7 @@ public class MazeGenerator : MonoBehaviour
             for (int column = 0; column < grid.Columns; column++)
             {
                 List<Cell> neighbours = new List<Cell>();
-                Cell cell = grid.GetCell(row, column);
+                Cell cell = grid.GetCell(column, row);
                 Cell neighbour;
 
                 // try to get north and east neighbours
@@ -295,10 +298,9 @@ public class MazeGenerator : MonoBehaviour
 
         for (int row = 0; row < grid.Rows; row++)
         {
-
             for (int column = 0; column < grid.Columns; column++)
             {
-                Cell cell = grid.GetCell(row, column);
+                Cell cell = grid.GetCell(column, row);
                 cellsInRun.Add(cell);
 
                 if (!cell.neighbours.ContainsKey(Cell.Direction.North))
@@ -343,12 +345,8 @@ public class MazeGenerator : MonoBehaviour
                 }
                 else
                 {
-                    // if (cell.neighbours.ContainsKey(Cell.Direction.East))
-                    {
-                        cell.LinkCell(cell.neighbours[Cell.Direction.East], true);
-                    }
+                    cell.LinkCell(cell.neighbours[Cell.Direction.East], true);
                 }
-
             }
         }
     }
@@ -560,7 +558,7 @@ public class MazeGenerator : MonoBehaviour
             for (int column = 0; column < grid.Columns; column++)
             {
                 // will be null if the cell isn't on the mask
-                Cell cell = grid.GetCell(row, column, mask);
+                Cell cell = grid.GetCell(column, row, mask);
 
                 if (cell != null)
                 {

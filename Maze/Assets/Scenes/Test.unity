@@ -162,7 +162,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 416753580}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -516,15 +516,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 8146616295129793659, guid: 706ec89a68ff44643a9cca1fecaaf785, type: 3}
-  algorithm: 0
+  algorithm: 6
   colouring: 0
-  gridSize: {x: 20, y: 20}
-  braidMaze: 0
-  braidPercentage: 0
-  displayDeadEnds: 0
+  gridSize: {x: 10, y: 10}
+  braidMaze: 1
+  braidPercentage: 70
+  displayDeadEnds: 1
   currentMask: 0
   mazeDisplay: {fileID: 730378954}
-  useCuboidMaze: 1
+  useCuboidMaze: 0
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0
