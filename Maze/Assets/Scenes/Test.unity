@@ -519,12 +519,12 @@ MonoBehaviour:
   algorithm: 6
   colouring: 0
   gridSize: {x: 10, y: 10}
-  braidMaze: 1
+  braidMaze: 0
   braidPercentage: 70
-  displayDeadEnds: 1
+  displayDeadEnds: 0
   currentMask: 0
   mazeDisplay: {fileID: 730378954}
-  useCuboidMaze: 0
+  useCuboidMaze: 1
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0

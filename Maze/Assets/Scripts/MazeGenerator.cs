@@ -70,7 +70,7 @@ public class MazeGenerator : MonoBehaviour
         }
         else
         {
-            CuboidGrid cuboidGrid = new CuboidGrid(3, 3);
+            CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
             RecursiveBacktracker(cuboidGrid.GetGrid(0));
 
             // don't hard code the 6
@@ -80,24 +80,9 @@ public class MazeGenerator : MonoBehaviour
             }
 
             mazeDisplay.OrientateSurfaces();
-
-            //cuboidGrid.GetGrid(0).grid[0, 2].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            //cuboidGrid.GetGrid(0).grid[0, 2].neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            //cuboidGrid.GetGrid(0).grid[2, 2].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            //cuboidGrid.GetGrid(0).grid[2, 2].neighbours[Cell.Direction.East].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            //cuboidGrid.GetGrid(0).grid[2, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.green;
-            //cuboidGrid.GetGrid(0).grid[2, 0].neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.green;
-            //cuboidGrid.GetGrid(0).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.yellow;
-            //cuboidGrid.GetGrid(0).grid[0, 0].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.yellow;
-
-
-            List<Cell> cells = cuboidGrid.GetGridFrontier(cuboidGrid.GetGrid(0), Cell.Direction.West);
-            //for (int i = 0; i < cells.Count; i++)
-            //{
-            //    cells[i].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            //    cells[i].neighbours[Cell.Direction.West].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            //}
-            // cuboidGrid.GetGrid(1).grid[0, 0].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
+            mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+            //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+            //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
         }
     }
 
@@ -167,7 +152,6 @@ public class MazeGenerator : MonoBehaviour
     }
 
 
-
     ///To do: create a seperate class for displaying grids?
     void DisplayGrid(MyGrid grid)
     {
@@ -225,6 +209,7 @@ public class MazeGenerator : MonoBehaviour
     void DisplayPath(Stack<Cell> path)
     {
         int maxDistance = path.Count;
+
         while (path.Count > 0)
         {
             Cell cell = path.Pop();

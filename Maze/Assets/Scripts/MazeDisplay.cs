@@ -7,10 +7,13 @@ public class MazeDisplay : MonoBehaviour
     [SerializeField] Transform[] cubeSurfaces;
     [SerializeField] GameObject tilePrefab;
 
+    float tileWidth = 1.4f;
+    float floorDepth = 0.18f;
+
     // Start is called before the first frame update
     void Start()
     {
-       // TestGrid();
+        // TestGrid();
     }
 
     public void DisplayGrid(GridStruct grid, int direction)
@@ -49,14 +52,24 @@ public class MazeDisplay : MonoBehaviour
         }
     }
 
+    public void PositionSurfaces(int columns, int rows)
+    {
+        cubeSurfaces[0].position = new Vector3(0, -tileWidth / 2 + floorDepth / 2, tileWidth * rows - tileWidth / 2 - floorDepth / 2);
+        cubeSurfaces[1].position = new Vector3(0, 0, 0);
+        cubeSurfaces[2].position = new Vector3(0, (-rows * tileWidth) + tileWidth / 2 + floorDepth / 2, -tileWidth / 2 + floorDepth / 2);
+        cubeSurfaces[3].position = new Vector3(0, (-rows * tileWidth) + floorDepth, (tileWidth * rows) - tileWidth);
+        cubeSurfaces[4].position = new Vector3(-tileWidth / 2 + floorDepth / 2, (-rows * tileWidth) + tileWidth / 2 + floorDepth / 2, 0);
+        cubeSurfaces[5].position = new Vector3(tileWidth * rows - tileWidth / 2 - floorDepth / 2, -tileWidth / 2 + floorDepth / 2, 0);
+    }
+
     public void OrientateSurfaces()
     {
-        //cubeSurfaces[0].eulerAngles = new Vector3(0, 0, 0);
-        //cubeSurfaces[1].eulerAngles = new Vector3(-90, 0, 0);
-        //cubeSurfaces[2].eulerAngles = new Vector3(180, 0, 0);
-        //cubeSurfaces[3].eulerAngles = new Vector3(90, 0, 0);
-        //cubeSurfaces[4].eulerAngles = new Vector3(0, 0, 90);
-        //cubeSurfaces[5].eulerAngles = new Vector3(0, 0, -90);
+        cubeSurfaces[0].eulerAngles = new Vector3(90, 0, 0);
+        cubeSurfaces[1].eulerAngles = new Vector3(0, 0, 0);
+        cubeSurfaces[2].eulerAngles = new Vector3(-90, 0, 0);
+        cubeSurfaces[3].eulerAngles = new Vector3(180, 0, 0);
+        cubeSurfaces[4].eulerAngles = new Vector3(0, 0, 90);
+        cubeSurfaces[5].eulerAngles = new Vector3(0, 0, -90);
 
     }
 
