@@ -350,6 +350,13 @@ MonoBehaviour:
   - {fileID: 1766079733}
   - {fileID: 1142876515}
   tilePrefab: {fileID: 8146616295129793659, guid: 706ec89a68ff44643a9cca1fecaaf785, type: 3}
+  tilePrefabs:
+  - {fileID: 281987848738134020, guid: b028a06ebd3a57847a790f4c58a84c3b, type: 3}
+  - {fileID: 514559392774346030, guid: ff35cc3dd80956d4488a882e8d35c65a, type: 3}
+  - {fileID: 7522788729032787315, guid: 398b94d5ff773144b842f17a6ebc55e7, type: 3}
+  - {fileID: 7086445441927638614, guid: b83b6d431095d764aa5c10bf591530e5, type: 3}
+  - {fileID: 2246111676808196475, guid: f15f6b63d6656a443868358135e121b6, type: 3}
+  - {fileID: 6682456983752528548, guid: 4c40bcc34296ea84d8f62a10b382e021, type: 3}
 --- !u!4 &730378955
 Transform:
   m_ObjectHideFlags: 0
@@ -518,7 +525,7 @@ MonoBehaviour:
   tilePrefab: {fileID: 8146616295129793659, guid: 706ec89a68ff44643a9cca1fecaaf785, type: 3}
   algorithm: 5
   colouring: 0
-  gridSize: {x: 10, y: 10}
+  gridSize: {x: 15, y: 15}
   braidMaze: 0
   braidPercentage: 70
   displayDeadEnds: 0

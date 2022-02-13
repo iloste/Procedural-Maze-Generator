@@ -51,19 +51,20 @@ public class MazeGenerator : MonoBehaviour
         if (!useCuboidMaze)
         {
 
-            //grid = new MyGrid(gridSize.x, gridSize.y);
-            //GenerateMaze(algorithm, currentMask);
+            grid = new MyGrid(gridSize.x, gridSize.y);
+            GenerateMaze(algorithm, currentMask);
 
-            Color[] bitmap = layerImage.GetPixels();
-            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
-            
-            GenerateMaze(algorithm, 1);
-            GenerateMaze(Algorithm.LinkAllCells, 2);
+            //Color[] bitmap = layerImage.GetPixels();
+            //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+            //GenerateMaze(algorithm, 1);
+            //GenerateMaze(Algorithm.LinkAllCells, 2);
 
             BraidMaze();
-            DisplayGrid(grid);
-            Pathfinding();
-            DisplayDeadEnds();
+            mazeDisplay.DisplayGrid(grid);
+            //DisplayGrid(grid);
+            //Pathfinding();
+            //DisplayDeadEnds();
         }
         else
         {

@@ -6,6 +6,20 @@ public class MazeDisplay : MonoBehaviour
 {
     [SerializeField] Transform[] cubeSurfaces;
     [SerializeField] GameObject tilePrefab;
+    [SerializeField] GameObject[] tilePrefabs;
+
+
+
+    enum TileType
+    {
+        Default,
+        DeadEnd,
+        Corner,
+        ThroughPassage,
+        CrossJunction,
+        TJunction,
+    }
+
 
     float tileWidth = 1.4f;
     float floorDepth = 0.18f;
@@ -15,6 +29,155 @@ public class MazeDisplay : MonoBehaviour
     {
         // TestGrid();
     }
+
+    private TileType GetTileType(Cell cell)
+    {
+        int linksCount = cell.Links.Count;
+        if (linksCount == 1)
+        {
+            return TileType.DeadEnd;
+        }
+        else if (linksCount == 2)
+        {
+            if ((cell.IsLinked(Cell.Direction.North) && cell.IsLinked(Cell.Direction.South)) ||
+                (cell.IsLinked(Cell.Direction.East) && cell.IsLinked(Cell.Direction.West)))
+            {
+                return TileType.ThroughPassage;
+            }
+            else
+            {
+                return TileType.Corner;
+            }
+        }
+        else if (linksCount == 3)
+        {
+            return TileType.TJunction;
+        }
+        else if (linksCount == 4)
+        {
+            return TileType.CrossJunction;
+        }
+
+        return TileType.Default;
+    }
+
+    public void DisplayGrid(MyGrid grid)
+    {
+        for (int row = 0; row < grid.Rows; row++)
+        {
+            for (int column = 0; column < grid.Columns; column++)
+            {
+                Cell cell = grid.GetCell(column, row);
+
+                if (cell != null)
+                {
+                    TileType tileType = GetTileType(cell);
+
+                    Tile tile;
+                    switch (tileType)
+                    {
+                        case TileType.Default:
+                            break;
+                        #region Deadend
+                        case TileType.DeadEnd:
+                            tile = Instantiate(tilePrefabs[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            if (cell.IsLinked(Cell.Direction.North))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.East))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.South))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.West))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                            }
+                            break;
+                        #endregion
+                        #region Corner
+                        case TileType.Corner:
+                            tile = Instantiate(tilePrefabs[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
+                            if (cell.IsLinked(Cell.Direction.North))
+                            {
+                                if (cell.IsLinked(Cell.Direction.East))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                                }
+                                else if (cell.IsLinked(Cell.Direction.West))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, -180, 0);
+                                }
+                            }
+                            else
+                            {
+                                if (cell.IsLinked(Cell.Direction.East))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                                }
+                                else if (cell.IsLinked(Cell.Direction.West))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                                }
+                            }
+                            break;
+                        #endregion
+                        #region Through Pass
+                        case TileType.ThroughPassage:
+                            tile = Instantiate(tilePrefabs[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
+                            if (cell.IsLinked(Cell.Direction.North))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                            }
+                            else
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                            }
+                            break;
+                        #endregion
+                        #region Cross Junction
+                        case TileType.CrossJunction:
+                            tile = Instantiate(tilePrefabs[4], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            break;
+                        #endregion
+                        #region TJunction
+                        case TileType.TJunction:
+                            tile = Instantiate(tilePrefabs[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            if (!cell.IsLinked(Cell.Direction.North))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.East))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.South))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.West))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                            }
+                            break;
+                        #endregion
+                        default:
+                            break;
+                    }
+
+
+                    
+                }
+            }
+        }
+    }
+
 
     public void DisplayGrid(GridStruct grid, int direction)
     {
