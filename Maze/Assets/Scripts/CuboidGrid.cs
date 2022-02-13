@@ -248,13 +248,4 @@ public class CuboidGrid : MyGrid
     {
         return base.GetUnvisitedCell(withVisitedNeighbour, mask);
     }
-
-
-
-    protected override void SetupMask(string[] map)
-    {
-        base.SetupMask(map);
-    }
-
-
 }

@@ -516,7 +516,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 8146616295129793659, guid: 706ec89a68ff44643a9cca1fecaaf785, type: 3}
-  algorithm: 6
+  algorithm: 5
   colouring: 0
   gridSize: {x: 10, y: 10}
   braidMaze: 0
@@ -524,7 +524,12 @@ MonoBehaviour:
   displayDeadEnds: 0
   currentMask: 0
   mazeDisplay: {fileID: 730378954}
-  useCuboidMaze: 1
+  useCuboidMaze: 0
+  layerImage: {fileID: 2800000, guid: b32bdeb30d0cb2a4787d8c03d6804daf, type: 3}
+  layerColours:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0.17254902, b: 1, a: 1}
 --- !u!4 &851988278
 Transform:
   m_ObjectHideFlags: 0

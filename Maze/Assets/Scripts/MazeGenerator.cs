@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class MazeGenerator : MonoBehaviour
 {
     [SerializeField] GameObject tilePrefab;
@@ -15,7 +16,8 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] int currentMask;
     [SerializeField] MazeDisplay mazeDisplay;
     [SerializeField] bool useCuboidMaze;
-
+    [SerializeField] Texture2D layerImage;
+    [SerializeField] Color[] layerColours;
 
     MyGrid grid;
     Pathfinding pf;
@@ -44,29 +46,24 @@ public class MazeGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
+
         if (!useCuboidMaze)
         {
-            //grid = new MyGrid("Assets/mazes/maze.txt");
-            //GenerateMaze(Algorithm.RecursiveBacktracker, 1);
-            //GenerateMaze(Algorithm.LinkAllCells, 2);
 
-            //grid = new MyGrid("Assets/mazes/maze 1.txt");
-            //GenerateMaze(algorithm, 0);
-
-            //grid = new MyGrid("Assets/mazes/T maze.txt");
+            //grid = new MyGrid(gridSize.x, gridSize.y);
             //GenerateMaze(algorithm, currentMask);
 
-            grid = new MyGrid(gridSize.x, gridSize.y);
-            GenerateMaze(algorithm, currentMask);
+            Color[] bitmap = layerImage.GetPixels();
+            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+            
+            GenerateMaze(algorithm, 1);
+            GenerateMaze(Algorithm.LinkAllCells, 2);
 
             BraidMaze();
             DisplayGrid(grid);
             Pathfinding();
             DisplayDeadEnds();
-            // grid.GetCell(0, 5).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.red;
-            //grid.GetCell(0, 5).neighbours[Cell.Direction.North].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            //grid.GetCell(1, 0).Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
-            //grid.GetCell(0, 0).neighbours[Cell.Direction.South].Tile.floor.GetComponent<MeshRenderer>().material.color = Color.blue;
         }
         else
         {

@@ -30,19 +30,42 @@ public class MyGrid
         ConfigureGrid();
     }
 
-    public MyGrid(string path) : this()
+    //public MyGrid(string path) : this()
+    //{
+    //    string[] mask = System.IO.File.ReadAllLines(path);
+    //    rows = mask.Length;
+    //    columns = mask[0].Length;
+    //    cellCounts[0] = rows * columns;
+    //    grid = new Cell[columns, rows];
+
+    //    PrepareGrid();
+    //    SetupMask(mask);
+    //    ConfigureGrid();
+    //}
+
+    public MyGrid(Color[] bitmap, Color[] layerColours, int columns, int rows) : this()
     {
-        string[] mask = System.IO.File.ReadAllLines(path);
-        rows = mask.Length;
-        columns = mask[0].Length;
-        cellCounts[0] = rows * columns;
-        grid = new Cell[rows, columns];
+        this.columns = columns;
+        this.rows = rows;
+        cellCounts[0] = columns * rows;
+        grid = new Cell[columns, rows];
+
+        Color[,] mask = new Color[columns, rows];
+
+        int c = 0;
+        int r = 0;
+
+        for (int i = 0; i < bitmap.Length; i++)
+        {
+            c = i % columns;
+            r = i / columns;
+            mask[c, r] = bitmap[i];
+        }
 
         PrepareGrid();
-        SetupMask(mask);
+        SetupMask(mask, layerColours);
         ConfigureGrid();
     }
-
 
     public virtual int GetCellCount(int mask = 0)
     {
@@ -150,7 +173,6 @@ public class MyGrid
                     }
 
                     cellsRemaining--;
-
                     break;
                 }
             }
@@ -158,24 +180,62 @@ public class MyGrid
     }
 
 
-    protected virtual void SetupMask(string[] map)
+    //protected virtual void SetupMask(string[] map)
+    //{
+    //    for (int row = 0; row < rows; row++)
+    //    {
+    //        for (int column = 0; column < columns; column++)
+    //        {
+    //            int mask;
+
+    //            if (int.TryParse(map[column][row].ToString(), out mask))
+    //            {
+    //                cellCounts[mask]++;
+    //            }
+    //            else
+    //            {
+    //                mask = -1;
+    //                cellCounts[0]--;
+    //            }
+
+    //            grid[column, row].Mask = mask;
+    //        }
+    //    }
+    //}
+
+
+    /// <summary>
+    /// sets the layermask of the cells.
+    /// </summary>
+    /// <param name="map">The 2D Color array representing each cell</param>
+    /// <param name="layerColours">The layer that each colour belongs to</param>
+    protected virtual void SetupMask(Color[,] map, Color[] layerColours)
     {
         for (int row = 0; row < rows; row++)
         {
             for (int column = 0; column < columns; column++)
             {
-                int mask;
+                int mask = 0;
 
-                if (int.TryParse(map[column][row].ToString(), out mask))
+                if (map[column, row] == layerColours[0])
                 {
-                    cellCounts[mask]++;
+                    mask = -1;
+                    grid[column, row].Mask = mask;
+                    cellCounts[0]--;
                 }
                 else
                 {
-                    mask = -1;
+                    for (int i = 1; i < layerColours.Length; i++)
+                    {
+                        if (map[column, row] == layerColours[i])
+                        {
+                            mask = i;
+                            grid[column, row].Mask = mask;
+                            cellCounts[mask]++;
+                            break;
+                        }
+                    }
                 }
-
-                grid[column, row].Mask = mask;
             }
         }
     }
@@ -294,6 +354,8 @@ public class MyGrid
     {
         //To do: make a list of each cell in each mask so you can make this more efficient.
         // You could store them as just the coordinates in a list of vector2.
+
+        //To do: this needs to take layer -1 into account. Sometimes it tries to access an invalid cell
         int column, row;
         Cell cell;
 
@@ -301,11 +363,14 @@ public class MyGrid
         {
             column = Random.Range(0, Columns);
             row = Random.Range(0, Rows);
-            cell = GetCell(column, row);
+            cell = GetCell(column, row, mask);
 
-            if (cell.Mask == -1 || (mask != 0 && cell.Mask != mask))
+            if (cell != null)
             {
-                cell = null;
+                if (cell.Mask == -1 || (mask != 0 && cell.Mask != mask))
+                {
+                    cell = null;
+                }
             }
 
         } while (cell == null);
