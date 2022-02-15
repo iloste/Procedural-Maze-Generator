@@ -72,8 +72,8 @@ public class MazeDisplay : MonoBehaviour
                 if (cell != null)
                 {
                     TileType tileType = GetTileType(cell);
+                    Tile tile = null;
 
-                    Tile tile;
                     switch (tileType)
                     {
                         case TileType.Default:
@@ -171,8 +171,9 @@ public class MazeDisplay : MonoBehaviour
                             break;
                     }
 
+                    cell.Tile = tile;
 
-                    
+
                 }
             }
         }

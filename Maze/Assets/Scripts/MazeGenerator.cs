@@ -1,23 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 
 public class MazeGenerator : MonoBehaviour
 {
-    [SerializeField] GameObject tilePrefab;
-    [SerializeField] Algorithm algorithm;
-    [SerializeField] Colouring colouring;
-    [SerializeField] Vector2Int gridSize;
-    [SerializeField] bool braidMaze;
-    [Tooltip("100% = no dead ends.")]
-    [SerializeField] [Range(0, 100)] int braidPercentage;
-    [SerializeField] bool displayDeadEnds;
-    [SerializeField] int currentMask;
-    [SerializeField] MazeDisplay mazeDisplay;
-    [SerializeField] bool useCuboidMaze;
-    [SerializeField] Texture2D layerImage;
-    [SerializeField] Color[] layerColours;
+
+
+    public string playername;
+
+    public Algorithm algorithm;
+    public Colouring colouring;
+    public Vector2Int gridSize;
+    public  bool braidMaze;
+    public int braidPercentage;
+    public bool displayDeadEnds;
+    public int currentMask;
+    public MazeDisplay mazeDisplay;
+    public bool useCuboidMaze;
+    public Texture2D layerImage;
+
+    public int layerColourCount;
+    public List<Color> layerColours = new List<Color>();
 
     MyGrid grid;
     Pathfinding pf;
@@ -44,46 +49,90 @@ public class MazeGenerator : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    //void Start()
+    //{
+
+
+    //    if (!useCuboidMaze)
+    //    {
+
+    //        grid = new MyGrid(gridSize.x, gridSize.y);
+    //        GenerateMaze(algorithm, currentMask);
+
+    //        //Color[] bitmap = layerImage.GetPixels();
+    //        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+    //        //GenerateMaze(algorithm, 1);
+    //        //GenerateMaze(Algorithm.LinkAllCells, 2);
+
+    //        BraidMaze();
+    //        mazeDisplay.DisplayGrid(grid);
+    //        //DisplayGrid(grid);
+    //        //Pathfinding();
+    //        //DisplayDeadEnds();
+    //    }
+    //    else
+    //    {
+    //        CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
+    //        RecursiveBacktracker(cuboidGrid.GetGrid(0));
+
+    //        // don't hard code the 6
+    //        for (int i = 0; i < 6; i++)
+    //        {
+    //            mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
+    //        }
+
+    //        mazeDisplay.OrientateSurfaces();
+    //        mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+    //        //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+    //        //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
+    //    }
+    //}
+
+   
+
+    public void DeleteMaze()
     {
-
-
-        if (!useCuboidMaze)
+        while (transform.childCount > 0)
         {
-
-            grid = new MyGrid(gridSize.x, gridSize.y);
-            GenerateMaze(algorithm, currentMask);
-
-            //Color[] bitmap = layerImage.GetPixels();
-            //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
-
-            //GenerateMaze(algorithm, 1);
-            //GenerateMaze(Algorithm.LinkAllCells, 2);
-
-            BraidMaze();
-            mazeDisplay.DisplayGrid(grid);
-            //DisplayGrid(grid);
-            //Pathfinding();
-            //DisplayDeadEnds();
-        }
-        else
-        {
-            CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
-            RecursiveBacktracker(cuboidGrid.GetGrid(0));
-
-            // don't hard code the 6
-            for (int i = 0; i < 6; i++)
-            {
-                mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
-            }
-
-            mazeDisplay.OrientateSurfaces();
-            mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-            //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-            //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
+            DestroyImmediate(transform.GetChild(0).gameObject);
         }
     }
 
+    public void GenerateMaze()
+    {
+        if (layerImage != null)
+        {
+            Color[] bitmap = layerImage.GetPixels();
+            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+        }
+        else
+        {
+            grid = new MyGrid(gridSize.x, gridSize.y);
+        }
+
+        GenerateMaze(algorithm, currentMask);
+        mazeDisplay = GetComponent<MazeDisplay>();
+        BraidMaze();
+
+        mazeDisplay.DisplayGrid(grid);
+        DisplayDeadEnds();
+
+        //Color[] bitmap = layerImage.GetPixels();
+        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+        //GenerateMaze(algorithm, 1);
+        //GenerateMaze(Algorithm.LinkAllCells, 2);
+
+        // mazeDisplay.DisplayGrid(grid);
+        //DisplayGrid(grid);
+        //Pathfinding();
+    }
+
+    public MyGrid GetGrid()
+    {
+        return grid;
+    }
 
     #region Start Functions
     private void GenerateMaze(Algorithm algorithm, int currentMask = 0)
@@ -98,6 +147,7 @@ public class MazeGenerator : MonoBehaviour
                 break;
             case Algorithm.AldousBroder:
                 AldousBroder(grid, currentMask);
+
                 break;
             case Algorithm.Wilson:
                 Wilson(grid, currentMask);
@@ -150,41 +200,6 @@ public class MazeGenerator : MonoBehaviour
     }
 
 
-    ///To do: create a seperate class for displaying grids?
-    void DisplayGrid(MyGrid grid)
-    {
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                Cell cell = grid.GetCell(column, row);
-
-                //  if (cell != null && grid.CellValid(cell))
-                if (cell != null)
-                {
-                    Tile tile = Instantiate(tilePrefab, new Vector3(column * 1.4f, 0, row * 1.4f), Quaternion.identity).GetComponent<Tile>();
-                    cell.Tile = tile;
-
-                    if (cell.IsLinked(Cell.Direction.North))
-                    {
-                        tile.DeactivateWall(Cell.Direction.North);
-                    }
-                    if (cell.IsLinked(Cell.Direction.South))
-                    {
-                        tile.DeactivateWall(Cell.Direction.South);
-                    }
-                    if (cell.IsLinked(Cell.Direction.East))
-                    {
-                        tile.DeactivateWall(Cell.Direction.East);
-                    }
-                    if (cell.IsLinked(Cell.Direction.West))
-                    {
-                        tile.DeactivateWall(Cell.Direction.West);
-                    }
-                }
-            }
-        }
-    }
 
 
     void DisplayGridColour(MyGrid grid, int maxDistance)
@@ -220,6 +235,8 @@ public class MazeGenerator : MonoBehaviour
 
     void DisplayDeadEnds()
     {
+        // To do: Find a way to show which cells are deadends without changing/losing the original materials so that they can be reverted
+        // to their original state.
         if (displayDeadEnds)
         {
             List<Cell> deadEnds = grid.GetDeadEnds();
@@ -227,6 +244,7 @@ public class MazeGenerator : MonoBehaviour
             for (int i = 0; i < deadEnds.Count; i++)
             {
                 deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
+                //deadEnds[i].Tile.transform.GetComponent<MeshRenderer>().sharedMaterial.color = new Color(1, 0, 0);
             }
         }
     }

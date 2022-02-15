@@ -43,7 +43,7 @@ public class MyGrid
     //    ConfigureGrid();
     //}
 
-    public MyGrid(Color[] bitmap, Color[] layerColours, int columns, int rows) : this()
+    public MyGrid(Color[] bitmap, List<Color> layerColours, int columns, int rows) : this()
     {
         this.columns = columns;
         this.rows = rows;
@@ -209,7 +209,7 @@ public class MyGrid
     /// </summary>
     /// <param name="map">The 2D Color array representing each cell</param>
     /// <param name="layerColours">The layer that each colour belongs to</param>
-    protected virtual void SetupMask(Color[,] map, Color[] layerColours)
+    protected virtual void SetupMask(Color[,] map, List<Color> layerColours)
     {
         for (int row = 0; row < rows; row++)
         {
@@ -225,7 +225,7 @@ public class MyGrid
                 }
                 else
                 {
-                    for (int i = 1; i < layerColours.Length; i++)
+                    for (int i = 1; i < layerColours.Count; i++)
                     {
                         if (map[column, row] == layerColours[i])
                         {
