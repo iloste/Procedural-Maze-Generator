@@ -20,10 +20,16 @@ public class MazeGeneratorEditor : Editor
     float labelWidth = 150f;
     MazeGenerator mazeGenerator;
     SerializedObject maze;
+    bool showLayers = true;
+    GUIStyle myFoldoutStyle;
+
+
     private void OnEnable()
     {
         mazeGenerator = (MazeGenerator)target;
         maze = new SerializedObject(mazeGenerator);
+        myFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+        myFoldoutStyle.fontStyle = FontStyle.Bold;
     }
 
     public override void OnInspectorGUI() //2
@@ -41,42 +47,48 @@ public class MazeGeneratorEditor : Editor
         GUILayout.Space(10f);
         GUILayout.Label("Test");
 
-
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         #region Grid Data
+
         GUILayout.BeginHorizontal();
         maze.FindProperty("gridSize").vector2IntValue = EditorGUILayout.Vector2IntField("Grid Size", maze.FindProperty("gridSize").vector2IntValue);
         GUILayout.EndHorizontal();
 
+       
+        showLayers = EditorGUILayout.Foldout(showLayers, "Layers", myFoldoutStyle);
 
-        GUILayout.BeginHorizontal();
-        maze.FindProperty("layerImage").objectReferenceValue = EditorGUILayout.ObjectField("Layer Image", maze.FindProperty("layerImage").objectReferenceValue, typeof(Texture2D), true);
-        GUILayout.EndHorizontal();
-
-
-        GUILayout.BeginHorizontal();
-        maze.FindProperty("layerColourCount").intValue = EditorGUILayout.DelayedIntField("Layer Colour Count", maze.FindProperty("layerColourCount").intValue);
-        GUILayout.EndHorizontal();
-
-        if (mazeGenerator.layerColourCount != layerColourCountPrevious)
+        if (showLayers)
         {
-            layerColourCountPrevious = mazeGenerator.layerColourCount;
-            UpdateList(mazeGenerator.layerColours, mazeGenerator.layerColourCount);
-            UpdateList(mazeGenerator.algorithms, mazeGenerator.layerColourCount);
-            maze.ApplyModifiedProperties();
-            maze.UpdateIfRequiredOrScript();
-        }
-
-        for (int i = 0; i < mazeGenerator.layerColours.Count; i++)
-        {
-            GUILayout.Space(10f);
-            GUILayout.Label("Layer " + i, EditorStyles.boldLabel);
             GUILayout.BeginHorizontal();
-            maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue = EditorGUILayout.ColorField("Layer Colour", maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue);
+            maze.FindProperty("layerImage").objectReferenceValue = EditorGUILayout.ObjectField("Layer Image", maze.FindProperty("layerImage").objectReferenceValue, typeof(Texture2D), true);
             GUILayout.EndHorizontal();
 
+
             GUILayout.BeginHorizontal();
-            maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Layer Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex));
+            maze.FindProperty("layerColourCount").intValue = EditorGUILayout.DelayedIntField("Layer Colour Count", maze.FindProperty("layerColourCount").intValue);
             GUILayout.EndHorizontal();
+
+            if (mazeGenerator.layerColourCount != layerColourCountPrevious)
+            {
+                layerColourCountPrevious = mazeGenerator.layerColourCount;
+                UpdateList(mazeGenerator.layerColours, mazeGenerator.layerColourCount);
+                UpdateList(mazeGenerator.algorithms, mazeGenerator.layerColourCount);
+                maze.ApplyModifiedProperties();
+                maze.UpdateIfRequiredOrScript();
+            }
+
+            for (int i = 0; i < mazeGenerator.layerColours.Count; i++)
+            {
+                GUILayout.Space(10f);
+                GUILayout.Label("Layer " + i, EditorStyles.boldLabel);
+                GUILayout.BeginHorizontal();
+                maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue = EditorGUILayout.ColorField("Layer Colour", maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue);
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Layer Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex));
+                GUILayout.EndHorizontal();
+            }
         }
         GUILayout.Space(10f);
 
@@ -110,7 +122,15 @@ public class MazeGeneratorEditor : Editor
 
         #endregion
 
+        GUILayout.BeginHorizontal();
+        maze.FindProperty("useRandomSeed").boolValue = EditorGUILayout.Toggle("Use Random Seed", maze.FindProperty("useRandomSeed").boolValue);
+        GUILayout.EndHorizontal();
 
+        EditorGUI.BeginDisabledGroup(maze.FindProperty("useRandomSeed").boolValue);
+        GUILayout.BeginHorizontal();
+        maze.FindProperty("seed").intValue = EditorGUILayout.IntField("Seed", maze.FindProperty("seed").intValue);
+        GUILayout.EndHorizontal();
+        EditorGUI.EndDisabledGroup();
 
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Generate Maze"))

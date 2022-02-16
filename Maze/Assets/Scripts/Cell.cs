@@ -23,6 +23,7 @@ public class Cell
     public Tile Tile { get; set; }
     public int GridNum { get; set; }
     public bool InRoom { get; set; }
+    public int Region { get; set; }
 
     public Cell(int column, int row)
     {
@@ -339,6 +340,23 @@ public class Cell
         }
 
         return validNeighbours;
+    }
+
+    /// <summary>
+    /// Returns a neighbour that's on another layer, if there is one. Returns null if there isn't
+    /// </summary>
+    /// <returns></returns>
+    public Cell GetBoardingNeighbour()
+    {
+        foreach (KeyValuePair<Direction, Cell> neighbour in neighbours)
+        {
+            if (neighbour.Value.Mask != -1 && neighbour.Value.Mask != Mask)
+            {
+                return neighbour.Value;
+            }
+        }
+
+        return null;
     }
 
 }
