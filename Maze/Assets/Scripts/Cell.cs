@@ -22,7 +22,7 @@ public class Cell
     public int Mask { get; set; }
     public Tile Tile { get; set; }
     public int GridNum { get; set; }
-
+    public bool InRoom { get; set; }
 
     public Cell(int column, int row)
     {

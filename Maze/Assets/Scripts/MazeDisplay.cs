@@ -6,18 +6,23 @@ public class MazeDisplay : MonoBehaviour
 {
     [SerializeField] Transform[] cubeSurfaces;
     [SerializeField] GameObject tilePrefab;
-    [SerializeField] GameObject[] tilePrefabs;
+    [SerializeField] GameObject[] mazeTiles;
+    [SerializeField] GameObject[] roomTiles;
 
 
 
     enum TileType
     {
         Default,
-        DeadEnd,
-        Corner,
-        ThroughPassage,
-        CrossJunction,
-        TJunction,
+        MDeadEnd,
+        MCorner,
+        MThroughPassage,
+        MCrossJunction,
+        MTJunction,
+        RCorner,
+        RWall,
+        RDeadEnd,
+        REmpty,
     }
 
 
@@ -33,30 +38,57 @@ public class MazeDisplay : MonoBehaviour
     private TileType GetTileType(Cell cell)
     {
         int linksCount = cell.Links.Count;
-        if (linksCount == 1)
+
+        #region If cell is in room
+        if (!cell.InRoom)
         {
-            return TileType.DeadEnd;
-        }
-        else if (linksCount == 2)
-        {
-            if ((cell.IsLinked(Cell.Direction.North) && cell.IsLinked(Cell.Direction.South)) ||
-                (cell.IsLinked(Cell.Direction.East) && cell.IsLinked(Cell.Direction.West)))
+            if (linksCount == 1)
             {
-                return TileType.ThroughPassage;
+                return TileType.MDeadEnd;
+            }
+            else if (linksCount == 2)
+            {
+                if ((cell.IsLinked(Cell.Direction.North) && cell.IsLinked(Cell.Direction.South)) ||
+                    (cell.IsLinked(Cell.Direction.East) && cell.IsLinked(Cell.Direction.West)))
+                {
+                    return TileType.MThroughPassage;
+                }
+                else
+                {
+                    return TileType.MCorner;
+                }
+            }
+            else if (linksCount == 3)
+            {
+                return TileType.MTJunction;
+            }
+            else if (linksCount == 4)
+            {
+                return TileType.MCrossJunction;
+            }
+        }
+        #endregion
+        #region If cell is NOT in room
+        else
+        {
+            if (linksCount == 1)
+            {
+                return TileType.RDeadEnd;
+            }
+            else if (linksCount == 2)
+            {
+                return TileType.RCorner;
+            }
+            else if (linksCount == 3)
+            {
+                return TileType.RWall;
             }
             else
             {
-                return TileType.Corner;
+                return TileType.REmpty;
             }
         }
-        else if (linksCount == 3)
-        {
-            return TileType.TJunction;
-        }
-        else if (linksCount == 4)
-        {
-            return TileType.CrossJunction;
-        }
+        #endregion
 
         return TileType.Default;
     }
@@ -79,8 +111,9 @@ public class MazeDisplay : MonoBehaviour
                         case TileType.Default:
                             break;
                         #region Deadend
-                        case TileType.DeadEnd:
-                            tile = Instantiate(tilePrefabs[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                        case TileType.MDeadEnd:
+                            tile = Instantiate(mazeTiles[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            
                             if (cell.IsLinked(Cell.Direction.North))
                             {
                                 tile.transform.eulerAngles = new Vector3(0, 180, 0);
@@ -100,8 +133,8 @@ public class MazeDisplay : MonoBehaviour
                             break;
                         #endregion
                         #region Corner
-                        case TileType.Corner:
-                            tile = Instantiate(tilePrefabs[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                        case TileType.MCorner:
+                            tile = Instantiate(mazeTiles[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -128,8 +161,8 @@ public class MazeDisplay : MonoBehaviour
                             break;
                         #endregion
                         #region Through Pass
-                        case TileType.ThroughPassage:
-                            tile = Instantiate(tilePrefabs[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                        case TileType.MThroughPassage:
+                            tile = Instantiate(mazeTiles[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -142,13 +175,14 @@ public class MazeDisplay : MonoBehaviour
                             break;
                         #endregion
                         #region Cross Junction
-                        case TileType.CrossJunction:
-                            tile = Instantiate(tilePrefabs[4], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                        case TileType.MCrossJunction:
+                            tile = Instantiate(mazeTiles[4], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
                             break;
                         #endregion
                         #region TJunction
-                        case TileType.TJunction:
-                            tile = Instantiate(tilePrefabs[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                        case TileType.MTJunction:
+                            tile = Instantiate(mazeTiles[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
                             if (!cell.IsLinked(Cell.Direction.North))
                             {
                                 tile.transform.eulerAngles = new Vector3(0, 180, 0);
@@ -165,6 +199,83 @@ public class MazeDisplay : MonoBehaviour
                             {
                                 tile.transform.eulerAngles = new Vector3(0, 90, 0);
                             }
+                            break;
+                        #endregion
+                        #region RWall
+                        case TileType.RWall:
+                            tile = Instantiate(roomTiles[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
+                            if (!cell.IsLinked(Cell.Direction.North))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.East))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.South))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                            }
+                            else if (!cell.IsLinked(Cell.Direction.West))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                            }
+                            break;
+                        #endregion
+                        #region RCorner
+                        case TileType.RCorner:
+                            tile = Instantiate(roomTiles[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
+                            if (cell.IsLinked(Cell.Direction.North))
+                            {
+                                if (cell.IsLinked(Cell.Direction.East))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                                }
+                                else if (cell.IsLinked(Cell.Direction.West))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, -180, 0);
+                                }
+                            }
+                            else
+                            {
+                                if (cell.IsLinked(Cell.Direction.East))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                                }
+                                else if (cell.IsLinked(Cell.Direction.West))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                                }
+                            }
+                            break;
+                        #endregion
+                        #region RDeadEnd
+                        case TileType.RDeadEnd:
+                            tile = Instantiate(roomTiles[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+
+                            if (cell.IsLinked(Cell.Direction.North))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.East))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.South))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                            }
+                            else if (cell.IsLinked(Cell.Direction.West))
+                            {
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                            }
+                            break;
+                        #endregion
+                        #region REmpty
+                        case TileType.REmpty:
+                            tile = Instantiate(roomTiles[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
                             break;
                         #endregion
                         default:

@@ -6,11 +6,6 @@ using UnityEditor;
 
 public class MazeGenerator : MonoBehaviour
 {
-
-
-
-
-
     public Algorithm algorithm;
     public List<Algorithm> algorithms = new List<Algorithm>();
     public Colouring colouring;
@@ -39,7 +34,8 @@ public class MazeGenerator : MonoBehaviour
         AldousBroderLive,
         RecursiveBacktracker,
         HuntAndKill,
-        LinkAllCells,
+        CreateRoom,
+        IgnoreLayer,
     }
 
     public enum Colouring
@@ -164,7 +160,7 @@ public class MazeGenerator : MonoBehaviour
             case Algorithm.HuntAndKill:
                 HuntAndKill(grid, currentMask);
                 break;
-            case Algorithm.LinkAllCells:
+            case Algorithm.CreateRoom:
                 LinkAllCells(grid, currentMask);
                 break;
             default:
@@ -569,6 +565,7 @@ public class MazeGenerator : MonoBehaviour
 
                 if (cell != null)
                 {
+                    cell.InRoom = true;
                     List<Cell> neighbours = cell.GetNeighbours(mask);
 
                     for (int i = 0; i < neighbours.Count; i++)
@@ -584,4 +581,8 @@ public class MazeGenerator : MonoBehaviour
     }
     #endregion
 
+    private void ConnectRegion(int mask)
+    {
+
+    }
 }

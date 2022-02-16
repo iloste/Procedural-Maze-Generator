@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 1181917811219457849}
   - component: {fileID: 7317953336547287640}
   m_Layer: 0
-  m_Name: + Junction New
+  m_Name: + Junction-Maze
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
