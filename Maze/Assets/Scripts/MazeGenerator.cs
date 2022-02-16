@@ -8,12 +8,14 @@ public class MazeGenerator : MonoBehaviour
 {
 
 
-    public string playername;
+
+
 
     public Algorithm algorithm;
+    public List<Algorithm> algorithms = new List<Algorithm>();
     public Colouring colouring;
     public Vector2Int gridSize;
-    public  bool braidMaze;
+    public bool braidMaze;
     public int braidPercentage;
     public bool displayDeadEnds;
     public int currentMask;
@@ -89,7 +91,7 @@ public class MazeGenerator : MonoBehaviour
     //    }
     //}
 
-   
+
 
     public void DeleteMaze()
     {
@@ -111,7 +113,11 @@ public class MazeGenerator : MonoBehaviour
             grid = new MyGrid(gridSize.x, gridSize.y);
         }
 
-        GenerateMaze(algorithm, currentMask);
+        for (int i = 1; i < algorithms.Count; i++)
+        {
+            GenerateMaze(algorithms[i], i);
+        }
+
         mazeDisplay = GetComponent<MazeDisplay>();
         BraidMaze();
 

@@ -10,9 +10,8 @@ public class MazeGeneratorEditor : Editor
 
 
     // To Do:
-    // Get this script working so that you can generate a maze via the editor.
-    // Just use the basic options of Grid size and algorithm.
-    // When that is working, upload to Github and work on the rest of the functionality you have so far.
+    // Link room should use prefabs without pillars. Maybe use a bool to check if the cell is in a room or not.
+    // Auto detect all the colours from the image. Mayeb have a button that will run the code. 
 
 
 
@@ -62,19 +61,30 @@ public class MazeGeneratorEditor : Editor
         {
             layerColourCountPrevious = mazeGenerator.layerColourCount;
             UpdateList(mazeGenerator.layerColours, mazeGenerator.layerColourCount);
+            UpdateList(mazeGenerator.algorithms, mazeGenerator.layerColourCount);
+            maze.ApplyModifiedProperties();
+            maze.UpdateIfRequiredOrScript();
         }
 
         for (int i = 0; i < mazeGenerator.layerColours.Count; i++)
         {
+            GUILayout.Space(10f);
+            GUILayout.Label("Layer " + i, EditorStyles.boldLabel);
             GUILayout.BeginHorizontal();
             maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue = EditorGUILayout.ColorField("Layer Colour", maze.FindProperty("layerColours").GetArrayElementAtIndex(i).colorValue);
             GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Layer Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithms").GetArrayElementAtIndex(i).enumValueIndex));
+            GUILayout.EndHorizontal();
         }
+        GUILayout.Space(10f);
+
         #endregion
 
         #region Maze Gen Data
         GUILayout.BeginHorizontal();
-        maze.FindProperty("algorithm").enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("My Enum:", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithm").enumValueIndex));
+        maze.FindProperty("algorithm").enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithm").enumValueIndex));
         GUILayout.EndHorizontal();
 
         //GUILayout.BeginHorizontal();
@@ -117,16 +127,15 @@ public class MazeGeneratorEditor : Editor
         maze.ApplyModifiedProperties();
     }
 
-    private void UpdateList(List<Color> list, int newCount)
+    private void UpdateList<T>(List<T> list, int newCount) where T : new()
     {
-
         if (list.Count < newCount)
         {
             int toAdd = newCount - list.Count;
 
             for (int i = 0; i < toAdd; i++)
             {
-                list.Add(new Color());
+                list.Add(new T());
             }
         }
         else
