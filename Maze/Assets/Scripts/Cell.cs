@@ -21,6 +21,22 @@ public class Cell
     public bool Visited { get; set; } = false;
     public int Mask { get; set; }
     public Tile Tile { get; set; }
+    public int GridNum { get; set; }
+    public bool InRoom { get; set; }
+
+    public Cell(int column, int row)
+    {
+        this.Row = row;
+        this.Column = column;
+        Links = new List<Cell>();
+    }
+
+
+    public Cell(int row, int column, int gridNum) : this(row, column)
+    {
+        GridNum = gridNum;
+    }
+
 
     public bool IsLinked(Cell cell)
     {
@@ -58,12 +74,7 @@ public class Cell
     }
 
 
-    public Cell(int row, int column)
-    {
-        this.Row = row;
-        this.Column = column;
-        Links = new List<Cell>();
-    }
+
 
     public void SetNeighour(Cell cell, Direction direction)
     {
@@ -101,6 +112,29 @@ public class Cell
                 default:
                     break;
             }
+        }
+    }
+
+
+    public void SetNeighour(Cell cell, Direction direction1, Direction direction2)
+    {
+        if (cell == null)
+        {
+            return;
+        }
+        else if (cell.Mask == -1 || Mask == -1)
+        {
+            return;
+        }
+
+        if (!neighbours.ContainsKey(direction1) && !cell.neighbours.ContainsKey(direction2))
+        {
+            neighbours.Add(direction1, cell);
+            cell.neighbours.Add(direction2, this);
+        }
+        else
+        {
+            Debug.LogError("Neighbour Exists");
         }
     }
 
@@ -192,7 +226,6 @@ public class Cell
                 return null;
             }
         }
-       
     }
 
 
@@ -285,6 +318,27 @@ public class Cell
         }
 
         return visitedNeighbours[Random.Range(0, visitedNeighbours.Count)];
+    }
+
+
+    /// <summary>
+    /// Returns a list of all the neighbours on the given mask.
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    public List<Cell> GetNeighbours(int mask = 0)
+    {
+        List<Cell> validNeighbours = new List<Cell>();
+
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
+            {
+                validNeighbours.Add(neighbours.ElementAt(i).Value);
+            }
+        }
+
+        return validNeighbours;
     }
 
 }

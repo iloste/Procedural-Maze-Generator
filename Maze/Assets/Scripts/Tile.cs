@@ -17,7 +17,7 @@ public class Tile : MonoBehaviour
     [SerializeField] GameObject southEastPillar;
     [SerializeField] GameObject southWestPillar;
 
-  
+    
 
     public void DeactivateWall(Cell.Direction direction)
     {

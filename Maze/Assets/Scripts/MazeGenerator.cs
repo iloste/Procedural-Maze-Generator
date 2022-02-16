@@ -1,18 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
+
 
 public class MazeGenerator : MonoBehaviour
 {
-    [SerializeField] GameObject tilePrefab;
-    [SerializeField] Algorithm algorithm;
-    [SerializeField] Colouring colouring;
-    [SerializeField] Vector2Int gridSize;
-    [SerializeField] bool braidMaze;
-    [Tooltip("100% = no dead ends.")]
-    [SerializeField][Range(0, 100)] int braidPercentage;
-    [SerializeField] bool displayDeadEnds;
-    [SerializeField] int currentMask;
+    public Algorithm algorithm;
+    public List<Algorithm> algorithms = new List<Algorithm>();
+    public Colouring colouring;
+    public Vector2Int gridSize;
+    public bool braidMaze;
+    public int braidPercentage;
+    public bool displayDeadEnds;
+    public int currentMask;
+    public MazeDisplay mazeDisplay;
+    public bool useCuboidMaze;
+    public Texture2D layerImage;
+
+    public int layerColourCount;
+    public List<Color> layerColours = new List<Color>();
 
     MyGrid grid;
     Pathfinding pf;
@@ -27,6 +34,8 @@ public class MazeGenerator : MonoBehaviour
         AldousBroderLive,
         RecursiveBacktracker,
         HuntAndKill,
+        CreateRoom,
+        IgnoreLayer,
     }
 
     public enum Colouring
@@ -38,20 +47,97 @@ public class MazeGenerator : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    //void Start()
+    //{
+
+
+    //    if (!useCuboidMaze)
+    //    {
+
+    //        grid = new MyGrid(gridSize.x, gridSize.y);
+    //        GenerateMaze(algorithm, currentMask);
+
+    //        //Color[] bitmap = layerImage.GetPixels();
+    //        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+    //        //GenerateMaze(algorithm, 1);
+    //        //GenerateMaze(Algorithm.LinkAllCells, 2);
+
+    //        BraidMaze();
+    //        mazeDisplay.DisplayGrid(grid);
+    //        //DisplayGrid(grid);
+    //        //Pathfinding();
+    //        //DisplayDeadEnds();
+    //    }
+    //    else
+    //    {
+    //        CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
+    //        RecursiveBacktracker(cuboidGrid.GetGrid(0));
+
+    //        // don't hard code the 6
+    //        for (int i = 0; i < 6; i++)
+    //        {
+    //            mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
+    //        }
+
+    //        mazeDisplay.OrientateSurfaces();
+    //        mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+    //        //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
+    //        //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
+    //    }
+    //}
+
+
+
+    public void DeleteMaze()
     {
-        grid = new MyGrid("Assets/mazes/maze 1.txt");
-        //grid = new MyGrid(gridSize.x, gridSize.y);
-        GenerateMaze();
-        BraidMaze();
-        Pathfinding();
-        DisplayGrid(grid);
-        DisplayDeadEnds();
+        while (transform.childCount > 0)
+        {
+            DestroyImmediate(transform.GetChild(0).gameObject);
+        }
     }
 
+    public void GenerateMaze()
+    {
+        if (layerImage != null)
+        {
+            Color[] bitmap = layerImage.GetPixels();
+            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+        }
+        else
+        {
+            grid = new MyGrid(gridSize.x, gridSize.y);
+        }
+
+        for (int i = 1; i < algorithms.Count; i++)
+        {
+            GenerateMaze(algorithms[i], i);
+        }
+
+        mazeDisplay = GetComponent<MazeDisplay>();
+        BraidMaze();
+
+        mazeDisplay.DisplayGrid(grid);
+        DisplayDeadEnds();
+
+        //Color[] bitmap = layerImage.GetPixels();
+        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+        //GenerateMaze(algorithm, 1);
+        //GenerateMaze(Algorithm.LinkAllCells, 2);
+
+        // mazeDisplay.DisplayGrid(grid);
+        //DisplayGrid(grid);
+        //Pathfinding();
+    }
+
+    public MyGrid GetGrid()
+    {
+        return grid;
+    }
 
     #region Start Functions
-    private void GenerateMaze()
+    private void GenerateMaze(Algorithm algorithm, int currentMask = 0)
     {
         switch (algorithm)
         {
@@ -63,6 +149,7 @@ public class MazeGenerator : MonoBehaviour
                 break;
             case Algorithm.AldousBroder:
                 AldousBroder(grid, currentMask);
+
                 break;
             case Algorithm.Wilson:
                 Wilson(grid, currentMask);
@@ -72,6 +159,9 @@ public class MazeGenerator : MonoBehaviour
                 break;
             case Algorithm.HuntAndKill:
                 HuntAndKill(grid, currentMask);
+                break;
+            case Algorithm.CreateRoom:
+                LinkAllCells(grid, currentMask);
                 break;
             default:
                 break;
@@ -90,7 +180,7 @@ public class MazeGenerator : MonoBehaviour
 
     private void Pathfinding()
     {
-        pf = new Pathfinding(grid.Rows, grid.Columns);
+        pf = new Pathfinding(grid.Columns, grid.Rows);
 
         switch (colouring)
         {
@@ -103,7 +193,7 @@ public class MazeGenerator : MonoBehaviour
                 DisplayPath(pf.FindLongestPath(grid, grid.GetCell(0, 0)));
                 break;
             case Colouring.ColourMaze:
-                pf.FloodGrid(grid.GetCell(grid.Rows / 2, grid.Columns / 2));
+                pf.FloodGrid(grid.GetCell(grid.Columns / 2, grid.Rows / 2));
                 DisplayGridColour(grid, pf.maxDistance);
                 break;
             default:
@@ -113,42 +203,6 @@ public class MazeGenerator : MonoBehaviour
 
 
 
-    ///To do: create a seperate class for displaying grids?
-    void DisplayGrid(MyGrid grid)
-    {
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                Cell cell = grid.GetCell(row, column);
-
-                //  if (cell != null && grid.CellValid(cell))
-                if (cell != null)
-                {
-                    Tile tile = Instantiate(tilePrefab, new Vector3(row * 1.4f, 0, column * 1.4f), Quaternion.identity).GetComponent<Tile>();
-                    cell.Tile = tile;
-
-                    if (cell.IsLinked(Cell.Direction.North))
-                    {
-                        tile.DeactivateWall(Cell.Direction.North);
-                    }
-                    if (cell.IsLinked(Cell.Direction.South))
-                    {
-                        tile.DeactivateWall(Cell.Direction.South);
-                    }
-                    if (cell.IsLinked(Cell.Direction.East))
-                    {
-                        tile.DeactivateWall(Cell.Direction.East);
-                    }
-                    if (cell.IsLinked(Cell.Direction.West))
-                    {
-                        tile.DeactivateWall(Cell.Direction.West);
-                    }
-                }
-            }
-        }
-    }
-
 
     void DisplayGridColour(MyGrid grid, int maxDistance)
     {
@@ -156,9 +210,9 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int column = 0; column < grid.Columns; column++)
             {
-                if (grid.CellValid(row, column))
+                if (grid.CellValid(column, row))
                 {
-                    Cell cell = grid.GetCell(row, column);
+                    Cell cell = grid.GetCell(column, row);
                     float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
                     cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
                 }
@@ -166,20 +220,25 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+
     void DisplayPath(Stack<Cell> path)
     {
         int maxDistance = path.Count;
+
         while (path.Count > 0)
         {
             Cell cell = path.Pop();
             float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
-            cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
+            GameObject floor = cell.Tile.floor;
+            floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
         }
-
     }
+
 
     void DisplayDeadEnds()
     {
+        // To do: Find a way to show which cells are deadends without changing/losing the original materials so that they can be reverted
+        // to their original state.
         if (displayDeadEnds)
         {
             List<Cell> deadEnds = grid.GetDeadEnds();
@@ -187,6 +246,7 @@ public class MazeGenerator : MonoBehaviour
             for (int i = 0; i < deadEnds.Count; i++)
             {
                 deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
+                //deadEnds[i].Tile.transform.GetComponent<MeshRenderer>().sharedMaterial.color = new Color(1, 0, 0);
             }
         }
     }
@@ -206,7 +266,7 @@ public class MazeGenerator : MonoBehaviour
             for (int column = 0; column < grid.Columns; column++)
             {
                 List<Cell> neighbours = new List<Cell>();
-                Cell cell = grid.GetCell(row, column);
+                Cell cell = grid.GetCell(column, row);
                 Cell neighbour;
 
                 // try to get north and east neighbours
@@ -241,10 +301,9 @@ public class MazeGenerator : MonoBehaviour
 
         for (int row = 0; row < grid.Rows; row++)
         {
-
             for (int column = 0; column < grid.Columns; column++)
             {
-                Cell cell = grid.GetCell(row, column);
+                Cell cell = grid.GetCell(column, row);
                 cellsInRun.Add(cell);
 
                 if (!cell.neighbours.ContainsKey(Cell.Direction.North))
@@ -289,12 +348,8 @@ public class MazeGenerator : MonoBehaviour
                 }
                 else
                 {
-                    // if (cell.neighbours.ContainsKey(Cell.Direction.East))
-                    {
-                        cell.LinkCell(cell.neighbours[Cell.Direction.East], true);
-                    }
+                    cell.LinkCell(cell.neighbours[Cell.Direction.East], true);
                 }
-
             }
         }
     }
@@ -412,7 +467,30 @@ public class MazeGenerator : MonoBehaviour
     {
         Stack<Cell> cells = new Stack<Cell>();
         cells.Push(grid.GetRandomCell(mask));
-        //cells.Push(grid.GetCell(0, 0, mask));
+        cells.Peek().Visited = true;
+
+        while (cells.Count > 0)
+        {
+            Cell currentCell = cells.Peek();
+            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
+
+            if (neighbour != null)
+            {
+                currentCell.LinkCell(neighbour, true);
+                neighbour.Visited = true;
+                cells.Push(neighbour);
+            }
+            else
+            {
+                cells.Pop();
+            }
+        }
+    }
+    private void RecursiveBacktracker(GridStruct grid, int mask = 0)
+    {
+        Stack<Cell> cells = new Stack<Cell>();
+        // cells.Push(grid.GetRandomCell(mask));
+        cells.Push(grid.grid[0, 0]);
         cells.Peek().Visited = true;
 
         while (cells.Count > 0)
@@ -469,4 +547,42 @@ public class MazeGenerator : MonoBehaviour
         }
     }
     #endregion
+
+    #region Link All Cells
+    /// <summary>
+    /// Links all the cells on a given mask.
+    /// </summary>
+    /// <param name="grid"></param>
+    /// <param name="mask"></param>
+    private void LinkAllCells(MyGrid grid, int mask = 0)
+    {
+        for (int row = 0; row < grid.Rows; row++)
+        {
+            for (int column = 0; column < grid.Columns; column++)
+            {
+                // will be null if the cell isn't on the mask
+                Cell cell = grid.GetCell(column, row, mask);
+
+                if (cell != null)
+                {
+                    cell.InRoom = true;
+                    List<Cell> neighbours = cell.GetNeighbours(mask);
+
+                    for (int i = 0; i < neighbours.Count; i++)
+                    {
+                        if (!cell.IsLinked(neighbours[i]))
+                        {
+                            cell.LinkCell(neighbours[i], true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #endregion
+
+    private void ConnectRegion(int mask)
+    {
+
+    }
 }

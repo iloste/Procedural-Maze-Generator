@@ -20,20 +20,20 @@ public class Pathfinding
     public Cell Destination { get; private set; }
 
 
-    public Pathfinding(int rows, int columns)
+    public Pathfinding(int columns, int rows)
     {
-        distances = new int[rows, columns];
+        distances = new int[columns, rows];
         ResetDistances();
     }
 
 
     private void ResetDistances()
     {
-        for (int i = 0; i < distances.GetLength(0); i++)
+        for (int row = 0; row < distances.GetLength(0); row++)
         {
-            for (int j = 0; j < distances.GetLength(1); j++)
+            for (int column = 0; column < distances.GetLength(1); column++)
             {
-                distances[i, j] = -1;
+                distances[column, row] = -1;
             }
         }
     }
@@ -65,6 +65,7 @@ public class Pathfinding
                 for (int i = 0; i < cells[0].Links.Count; i++)
                 {
                     Cell linkedCell = cells[0].Links[i];
+
                     if (GetDistanceFromOrigin(linkedCell) == -1)
                     {
                         frontier.Add(linkedCell);
@@ -79,6 +80,7 @@ public class Pathfinding
         maxDistance = distance;
     }
 
+
     public int GetDistanceFromOrigin(Cell cell)
     {
         if (cell == null)
@@ -90,9 +92,9 @@ public class Pathfinding
             throw new System.Exception("Null cell");
         }
 
-        return distances[cell.Row, cell.Column];
-    }  
-    
+        return distances[cell.Column, cell.Row];
+    }
+
     private void SetDistanceFromOrigin(Cell cell, int distance)
     {
         if (cell == null)
@@ -100,10 +102,11 @@ public class Pathfinding
             throw new System.Exception("Null cell");
         }
 
-         distances[cell.Row, cell.Column] = distance;
+        distances[cell.Column, cell.Row] = distance;
     }
 
-    public Stack<Cell> ShortestPath(Cell origin, Cell destination)
+
+    public Stack<Cell> ShortestPath(Cell origin, Cell destination, int mask = 0)
     {
         FloodGrid(origin);
         Origin = origin;
