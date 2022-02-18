@@ -17,9 +17,11 @@ public class MazeGenerator : MonoBehaviour
     public MazeDisplay mazeDisplay;
     public bool useCuboidMaze;
     public Texture2D layerImage;
-
+    public bool useRandomSeed = true;
+    public int seed;
     public int layerColourCount;
     public List<Color> layerColours = new List<Color>();
+    public int tab;
 
     MyGrid grid;
     Pathfinding pf;
@@ -46,47 +48,7 @@ public class MazeGenerator : MonoBehaviour
         ColourMaze,
     }
 
-    // Start is called before the first frame update
-    //void Start()
-    //{
-
-
-    //    if (!useCuboidMaze)
-    //    {
-
-    //        grid = new MyGrid(gridSize.x, gridSize.y);
-    //        GenerateMaze(algorithm, currentMask);
-
-    //        //Color[] bitmap = layerImage.GetPixels();
-    //        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
-
-    //        //GenerateMaze(algorithm, 1);
-    //        //GenerateMaze(Algorithm.LinkAllCells, 2);
-
-    //        BraidMaze();
-    //        mazeDisplay.DisplayGrid(grid);
-    //        //DisplayGrid(grid);
-    //        //Pathfinding();
-    //        //DisplayDeadEnds();
-    //    }
-    //    else
-    //    {
-    //        CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
-    //        RecursiveBacktracker(cuboidGrid.GetGrid(0));
-
-    //        // don't hard code the 6
-    //        for (int i = 0; i < 6; i++)
-    //        {
-    //            mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
-    //        }
-
-    //        mazeDisplay.OrientateSurfaces();
-    //        mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-    //        //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-    //        //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
-    //    }
-    //}
-
+    
 
 
     public void DeleteMaze()
@@ -99,25 +61,44 @@ public class MazeGenerator : MonoBehaviour
 
     public void GenerateMaze()
     {
-        if (layerImage != null)
+        if (useRandomSeed)
         {
-            Color[] bitmap = layerImage.GetPixels();
-            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+            seed = Random.Range(0, 10000000);
+        }
+
+        Random.InitState(seed);
+
+        if (tab == 1)
+        {
+            if (layerImage != null)
+            {
+                Color[] bitmap = layerImage.GetPixels();
+                grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+                for (int i = 1; i < algorithms.Count; i++)
+                {
+                    GenerateMaze(algorithms[i], i);
+                }
+            }
+            else
+            {
+                Debug.LogError("No Layer Image Selected");
+            }
         }
         else
         {
             grid = new MyGrid(gridSize.x, gridSize.y);
+            GenerateMaze(algorithm, 0);
         }
 
-        for (int i = 1; i < algorithms.Count; i++)
-        {
-            GenerateMaze(algorithms[i], i);
-        }
 
-        mazeDisplay = GetComponent<MazeDisplay>();
+
+        ConnectRegions();
         BraidMaze();
 
+        mazeDisplay = GetComponent<MazeDisplay>();
         mazeDisplay.DisplayGrid(grid);
+
         DisplayDeadEnds();
 
         //Color[] bitmap = layerImage.GetPixels();
@@ -581,8 +562,64 @@ public class MazeGenerator : MonoBehaviour
     }
     #endregion
 
-    private void ConnectRegion(int mask)
-    {
 
+    /// <summary>
+    /// Connects all of the different layers together. Each region gets at least 1 connection with a chance for a second connection
+    /// </summary>
+    private void ConnectRegions()
+    {
+        List<Connector> connectors = grid.GetConnectingCells();
+
+        while (connectors.Count > 0)
+        {
+            int index = Random.Range(0, connectors.Count);
+            Connector randomEgde = connectors[index];
+            connectors.RemoveAt(index);
+
+            if (randomEgde.IsOneRegion())
+            {
+                continue;
+            }
+
+            randomEgde.currentCell.LinkCell(randomEgde.connectedCell, true);
+
+            int higherRegion;
+            int lowerRegion;
+
+            // prepare region variables
+            if (randomEgde.currentCell.Region < randomEgde.connectedCell.Region)
+            {
+                lowerRegion = randomEgde.currentCell.Region;
+                higherRegion = randomEgde.connectedCell.Region;
+            }
+            else
+            {
+                lowerRegion = randomEgde.connectedCell.Region;
+                higherRegion = randomEgde.currentCell.Region;
+            }
+
+            for (int i = 0; i < connectors.Count; i++)
+            {
+                // remove connectors connecting the same two regions
+                if (connectors[i].SameConnection(randomEgde.currentCell.Region, randomEgde.connectedCell.Region))
+                {
+                    connectors.RemoveAt(i);
+                    i--;
+                }
+                // anything connecting to the higher region
+                else if (connectors[i].ConnectsToRegion(higherRegion))
+                {
+                    // make higher region the same as lower region
+                    connectors[i].MergeRegions(higherRegion, lowerRegion);
+
+                    // if both regions are the same, remove it
+                    if (connectors[i].IsOneRegion())
+                    {
+                        connectors.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+        }
     }
 }

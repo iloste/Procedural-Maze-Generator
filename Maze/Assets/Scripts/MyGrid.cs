@@ -377,4 +377,34 @@ public class MyGrid
 
         return GetCell(column, row);
     }
+
+
+    public List<Connector> GetConnectingCells()
+    {
+        List<Connector> connectingCells = new List<Connector>();
+
+        for (int row = 0; row < Rows; row++)
+        {
+            for (int column = 0; column < Columns; column++)
+            {
+                Cell currentCell = grid[column, row];
+
+                if (currentCell != null && currentCell.Mask != -1)
+                {
+                    Cell neighbour = currentCell.GetBoardingNeighbour();
+
+                    if (neighbour != null)
+                    {
+                        currentCell.Region = currentCell.Mask;
+                        Connector conCell = new Connector();
+                        conCell.currentCell = currentCell;
+                        conCell.connectedCell = neighbour;
+                        connectingCells.Add(conCell);
+                    }
+                }
+            }
+        }
+
+        return connectingCells;
+    }
 }
