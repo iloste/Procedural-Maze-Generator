@@ -21,6 +21,7 @@ public class MazeGenerator : MonoBehaviour
     public int seed;
     public int layerColourCount;
     public List<Color> layerColours = new List<Color>();
+    public int tab;
 
     MyGrid grid;
     Pathfinding pf;
@@ -47,47 +48,7 @@ public class MazeGenerator : MonoBehaviour
         ColourMaze,
     }
 
-    // Start is called before the first frame update
-    //void Start()
-    //{
-
-
-    //    if (!useCuboidMaze)
-    //    {
-
-    //        grid = new MyGrid(gridSize.x, gridSize.y);
-    //        GenerateMaze(algorithm, currentMask);
-
-    //        //Color[] bitmap = layerImage.GetPixels();
-    //        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
-
-    //        //GenerateMaze(algorithm, 1);
-    //        //GenerateMaze(Algorithm.LinkAllCells, 2);
-
-    //        BraidMaze();
-    //        mazeDisplay.DisplayGrid(grid);
-    //        //DisplayGrid(grid);
-    //        //Pathfinding();
-    //        //DisplayDeadEnds();
-    //    }
-    //    else
-    //    {
-    //        CuboidGrid cuboidGrid = new CuboidGrid(20, 20);
-    //        RecursiveBacktracker(cuboidGrid.GetGrid(0));
-
-    //        // don't hard code the 6
-    //        for (int i = 0; i < 6; i++)
-    //        {
-    //            mazeDisplay.DisplayGrid(cuboidGrid.GetGrid(i), i);
-    //        }
-
-    //        mazeDisplay.OrientateSurfaces();
-    //        mazeDisplay.PositionSurfaces(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-    //        //pf = new Pathfinding(cuboidGrid.GetGrid(0).columns, cuboidGrid.GetGrid(0).rows);
-    //        //DisplayPath(pf.ShortestPath(cuboidGrid.GetGrid(0).grid[0, 0], cuboidGrid.GetGrid(4).grid[0, 0], 0));
-    //    }
-    //}
-
+    
 
 
     public void DeleteMaze()
@@ -107,20 +68,30 @@ public class MazeGenerator : MonoBehaviour
 
         Random.InitState(seed);
 
-        if (layerImage != null)
+        if (tab == 1)
         {
-            Color[] bitmap = layerImage.GetPixels();
-            grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+            if (layerImage != null)
+            {
+                Color[] bitmap = layerImage.GetPixels();
+                grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+
+                for (int i = 1; i < algorithms.Count; i++)
+                {
+                    GenerateMaze(algorithms[i], i);
+                }
+            }
+            else
+            {
+                Debug.LogError("No Layer Image Selected");
+            }
         }
         else
         {
             grid = new MyGrid(gridSize.x, gridSize.y);
+            GenerateMaze(algorithm, 0);
         }
 
-        for (int i = 1; i < algorithms.Count; i++)
-        {
-            GenerateMaze(algorithms[i], i);
-        }
+
 
         ConnectRegions();
         BraidMaze();
