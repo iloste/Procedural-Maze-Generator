@@ -51,6 +51,8 @@ public class MazeGeneratorEditor : Editor
                 GUILayout.EndHorizontal();
 
                 GUILayout.Space(4);
+                DisplayGridScale();
+                GUILayout.Space(4);
 
                 GUILayout.BeginHorizontal();
                 maze.FindProperty("algorithm").enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Maze Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithm").enumValueIndex));
@@ -59,6 +61,10 @@ public class MazeGeneratorEditor : Editor
             case 1:
                 // using bitmap for grid
                 EditorGUILayout.HelpBox("If using an image for the grid, the maze will take it's size from the width and height of the image.", MessageType.Info);
+                GUILayout.Space(5);
+
+                DisplayGridScale();
+
                 GUILayout.Space(5);
 
                 GUILayout.BeginHorizontal();
@@ -192,5 +198,17 @@ public class MazeGeneratorEditor : Editor
                 list.RemoveAt(list.Count - 1);
             }
         }
+    }
+
+
+    public void DisplayGridScale()
+    {
+        GUILayout.BeginHorizontal();
+        maze.FindProperty("xzScale").floatValue = EditorGUILayout.FloatField("X/Z Scale", maze.FindProperty("xzScale").floatValue);
+        GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
+        maze.FindProperty("yScale").floatValue = EditorGUILayout.FloatField("Y Scale", maze.FindProperty("yScale").floatValue);
+        GUILayout.EndHorizontal();
+
     }
 }

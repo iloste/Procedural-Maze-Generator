@@ -26,6 +26,8 @@ public class MazeGenerator : MonoBehaviour
     MyGrid grid;
     Pathfinding pf;
 
+    public float xzScale = 1;
+    public float yScale = 1;
 
     public enum Algorithm
     {
@@ -97,7 +99,7 @@ public class MazeGenerator : MonoBehaviour
         BraidMaze();
 
         mazeDisplay = GetComponent<MazeDisplay>();
-        mazeDisplay.DisplayGrid(grid);
+        mazeDisplay.DisplayGrid(grid, xzScale, yScale);
 
         DisplayDeadEnds();
 

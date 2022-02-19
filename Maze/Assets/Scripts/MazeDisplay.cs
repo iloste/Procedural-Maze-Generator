@@ -81,7 +81,7 @@ public class MazeDisplay : MonoBehaviour
         return TileType.Default;
     }
 
-    public void DisplayGrid(MyGrid grid)
+    public void DisplayGrid(MyGrid grid, float xzScale, float yScale)
     {
         for (int row = 0; row < grid.Rows; row++)
         {
@@ -100,7 +100,7 @@ public class MazeDisplay : MonoBehaviour
                             break;
                         #region Deadend
                         case TileType.MDeadEnd:
-                            tile = Instantiate(mazeTiles[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(mazeTiles[1], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
                             
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -122,7 +122,7 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region Corner
                         case TileType.MCorner:
-                            tile = Instantiate(mazeTiles[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(mazeTiles[0], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -150,7 +150,7 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region Through Pass
                         case TileType.MThroughPassage:
-                            tile = Instantiate(mazeTiles[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(mazeTiles[2], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -164,34 +164,34 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region Cross Junction
                         case TileType.MCrossJunction:
-                            tile = Instantiate(mazeTiles[4], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(mazeTiles[4], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
                             break;
                         #endregion
                         #region TJunction
                         case TileType.MTJunction:
-                            tile = Instantiate(mazeTiles[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(mazeTiles[3], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (!cell.IsLinked(Cell.Direction.North))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.East))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.South))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.West))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
                             }
                             break;
                         #endregion
                         #region RWall
                         case TileType.RWall:
-                            tile = Instantiate(roomTiles[2], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(roomTiles[2], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (!cell.IsLinked(Cell.Direction.North))
                             {
@@ -213,7 +213,7 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region RCorner
                         case TileType.RCorner:
-                            tile = Instantiate(roomTiles[1], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(roomTiles[1], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -241,7 +241,7 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region RDeadEnd
                         case TileType.RDeadEnd:
-                            tile = Instantiate(roomTiles[0], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(roomTiles[0], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
 
                             if (cell.IsLinked(Cell.Direction.North))
                             {
@@ -263,13 +263,14 @@ public class MazeDisplay : MonoBehaviour
                         #endregion
                         #region REmpty
                         case TileType.REmpty:
-                            tile = Instantiate(roomTiles[3], new Vector3(column, 0, row), Quaternion.identity, transform).GetComponent<Tile>();
+                            tile = Instantiate(roomTiles[3], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
                             break;
                         #endregion
                         default:
                             break;
                     }
 
+                    tile.SetScale(xzScale, yScale);
                     cell.Tile = tile;
                 }
             }
