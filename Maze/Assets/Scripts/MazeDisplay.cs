@@ -97,6 +97,7 @@ public class MazeDisplay : MonoBehaviour
                     switch (tileType)
                     {
                         case TileType.Default:
+                            Debug.LogError("Default Tile Selected");
                             break;
                         #region Deadend
                         case TileType.MDeadEnd:
@@ -195,19 +196,19 @@ public class MazeDisplay : MonoBehaviour
 
                             if (!cell.IsLinked(Cell.Direction.North))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.East))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, -90, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 180, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.South))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                                tile.transform.eulerAngles = new Vector3(0,-90, 0);
                             }
                             else if (!cell.IsLinked(Cell.Direction.West))
                             {
-                                tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                                tile.transform.eulerAngles = new Vector3(0, 0, 0);
                             }
                             break;
                         #endregion
