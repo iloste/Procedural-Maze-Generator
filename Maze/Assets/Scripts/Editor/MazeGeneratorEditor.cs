@@ -12,8 +12,10 @@ public class MazeGeneratorEditor : Editor
     SerializedObject maze;
     bool showLayers = true;
     GUIStyle myFoldoutStyle;
+    bool initialised = false;
 
-    private void OnEnable()
+
+    private void Initialise()
     {
         mazeGenerator = (MazeGenerator)target;
         maze = new SerializedObject(mazeGenerator);
@@ -21,10 +23,17 @@ public class MazeGeneratorEditor : Editor
         myFoldoutStyle = new GUIStyle(EditorStyles.foldout);
         myFoldoutStyle.fontStyle = FontStyle.Bold;
         myFoldoutStyle.margin = new RectOffset(8, 4, 0, 0);
+        initialised = true;
     }
+
 
     public override void OnInspectorGUI()
     {
+        if (!initialised)
+        {
+            Initialise();
+        }
+
         maze.Update();
 
         #region Grid Data
@@ -94,6 +103,7 @@ public class MazeGeneratorEditor : Editor
         GUILayout.EndHorizontal();
     }
 
+
     private void AutoGridDisplay()
     {
         GUILayout.BeginHorizontal();
@@ -108,6 +118,7 @@ public class MazeGeneratorEditor : Editor
         maze.FindProperty("algorithm").enumValueIndex = (int)(MazeGenerator.Algorithm)EditorGUILayout.EnumPopup("Maze Algorithm", (MazeGenerator.Algorithm)System.Enum.GetValues(typeof(MazeGenerator.Algorithm)).GetValue(maze.FindProperty("algorithm").enumValueIndex));
         GUILayout.EndHorizontal();
     }
+
 
     private void ImageLayerGridDisplay()
     {
@@ -158,6 +169,7 @@ public class MazeGeneratorEditor : Editor
         }
     }
 
+
     private void BraidMazeDisplay()
     {
         GUILayout.BeginHorizontal();
@@ -172,6 +184,7 @@ public class MazeGeneratorEditor : Editor
         }
     }
 
+
     private void SeedDisplay()
     {
         GUILayout.BeginHorizontal();
@@ -184,6 +197,7 @@ public class MazeGeneratorEditor : Editor
         GUILayout.EndHorizontal();
         EditorGUI.EndDisabledGroup();
     }
+
 
     private void GenerateButtonsDisplay()
     {

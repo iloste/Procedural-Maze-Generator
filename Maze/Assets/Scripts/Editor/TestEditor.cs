@@ -8,7 +8,7 @@ public class TestEditor : Editor
 
     // float thumbnailWidth = 70;
     //float thumbnailHeight = 70;
-    float labelWidth = 150f;
+   // float labelWidth = 150f;
 
     //  string playerName = "Player 1";
     //string playerLevel = "1";
