@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class MazeDisplay : MonoBehaviour
 {
@@ -271,7 +272,10 @@ public class MazeDisplay : MonoBehaviour
                             break;
                     }
 
+                    Undo.RegisterCreatedObjectUndo(tile.gameObject, "Object Created");
+                    Undo.RecordObject(tile.gameObject, "Set Scale");
                     tile.SetScale(xzScale, yScale);
+                    Undo.RecordObject(tile.gameObject, "Set Tile Variable");
                     cell.Tile = tile;
                 }
             }

@@ -14,12 +14,14 @@ public class MazeGeneratorEditor : Editor
     GUIStyle myFoldoutStyle;
     bool initialised = false;
 
-
-    private void Initialise()
+    private void OnEnable()
     {
         mazeGenerator = (MazeGenerator)target;
         maze = new SerializedObject(mazeGenerator);
+    }
 
+    private void InitialiseStyles()
+    {
         myFoldoutStyle = new GUIStyle(EditorStyles.foldout);
         myFoldoutStyle.fontStyle = FontStyle.Bold;
         myFoldoutStyle.margin = new RectOffset(8, 4, 0, 0);
@@ -27,11 +29,12 @@ public class MazeGeneratorEditor : Editor
     }
 
 
+
     public override void OnInspectorGUI()
     {
         if (!initialised)
         {
-            Initialise();
+            InitialiseStyles();
         }
 
         maze.Update();
@@ -58,6 +61,7 @@ public class MazeGeneratorEditor : Editor
         #region Maze Data
         EditorGUILayout.BeginVertical("GroupBox");
         BraidMazeDisplay();
+        RemoveDeadendsDisplay();
         SeedDisplay();
         GUILayout.EndVertical();
         GUILayout.Space(5);
@@ -184,6 +188,15 @@ public class MazeGeneratorEditor : Editor
         }
     }
 
+    private void RemoveDeadendsDisplay()
+    {
+        GUILayout.BeginHorizontal();
+        maze.FindProperty("removeDeadends").boolValue = EditorGUILayout.Toggle(new GUIContent("Remove Deadends", ""), maze.FindProperty("removeDeadends").boolValue);
+        GUILayout.EndHorizontal();
+
+
+    }
+
 
     private void SeedDisplay()
     {
@@ -202,10 +215,13 @@ public class MazeGeneratorEditor : Editor
     private void GenerateButtonsDisplay()
     {
         GUILayout.BeginHorizontal();
+
         if (GUILayout.Button("Generate Maze"))
         {
-            mazeGenerator.DeleteMaze();
-            mazeGenerator.GenerateMaze();
+            //mazeGenerator.DeleteMaze();
+            // mazeGenerator.GenerateMaze();
+            ((MazeGenerator)target).DeleteMaze();
+            ((MazeGenerator)target).GenerateMaze();
         }
 
         if (GUILayout.Button("Delete Maze"))
