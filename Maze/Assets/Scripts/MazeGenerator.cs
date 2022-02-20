@@ -22,10 +22,13 @@ public class MazeGenerator : MonoBehaviour
     public int layerColourCount;
     public List<Color> layerColours = new List<Color>();
     public int tab;
+    public bool removeDeadends;
 
     MyGrid grid;
     Pathfinding pf;
 
+    public float xzScale = 1;
+    public float yScale = 1;
 
     public enum Algorithm
     {
@@ -48,7 +51,7 @@ public class MazeGenerator : MonoBehaviour
         ColourMaze,
     }
 
-    
+
 
 
     public void DeleteMaze()
@@ -61,6 +64,8 @@ public class MazeGenerator : MonoBehaviour
 
     public void GenerateMaze()
     {
+       
+
         if (useRandomSeed)
         {
             seed = Random.Range(0, 10000000);
@@ -96,8 +101,13 @@ public class MazeGenerator : MonoBehaviour
         ConnectRegions();
         BraidMaze();
 
+        if (removeDeadends)
+        {
+            RemoveDeadEnds();
+        }
+
         mazeDisplay = GetComponent<MazeDisplay>();
-        mazeDisplay.DisplayGrid(grid);
+        mazeDisplay.DisplayGrid(grid, xzScale, yScale);
 
         DisplayDeadEnds();
 
@@ -583,6 +593,15 @@ public class MazeGenerator : MonoBehaviour
 
             randomEgde.currentCell.LinkCell(randomEgde.connectedCell, true);
 
+            if (randomEgde.currentCell.InRoom)
+            {
+                randomEgde.currentCell.isDoor = true;
+            }
+            else if (randomEgde.connectedCell.InRoom)
+            {
+                randomEgde.connectedCell.isDoor = true;
+            }
+
             int higherRegion;
             int lowerRegion;
 
@@ -620,6 +639,45 @@ public class MazeGenerator : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+
+    private void RemoveDeadEnds()
+    {
+        Cell cell;
+
+        for (int row = 0; row < grid.Rows; row++)
+        {
+            for (int column = 0; column < grid.Columns; column++)
+            {
+                cell = grid.GetCell(column, row, 0);
+
+                if (cell != null)
+                {
+                    if (cell.Links.Count == 1)
+                    {
+                        DeleteCorridor(cell);
+                    }
+                    else if (cell.Links.Count == 0)
+                    {
+                        cell.Mask = -1;
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void DeleteCorridor(Cell cell)
+    {
+        while (cell.Links.Count == 1)
+        {
+            Cell neighbour = cell.Links[0];
+            cell.RemoveNeighbours();
+            cell.RemoveLinks();
+            cell.Mask = -1;
+            cell = neighbour;
         }
     }
 }

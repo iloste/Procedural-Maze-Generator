@@ -16,6 +16,7 @@ public class Cell
 
     public int Row { get; private set; }
     public int Column { get; private set; }
+
     public Dictionary<Direction, Cell> neighbours = new Dictionary<Direction, Cell>();
     public List<Cell> Links { get; private set; }
     public bool Visited { get; set; } = false;
@@ -24,6 +25,7 @@ public class Cell
     public int GridNum { get; set; }
     public bool InRoom { get; set; }
     public int Region { get; set; }
+    public bool isDoor { get; set; }
 
     public Cell(int column, int row)
     {
@@ -187,7 +189,7 @@ public class Cell
 
             if (bidi)
             {
-                cell.LinkCell(this, false);
+                cell.UnlinkCell(this, false);
             }
         }
     }
@@ -359,5 +361,63 @@ public class Cell
         return null;
     }
 
+    public void RemoveNeighbours()
+    {
+        Cell neighbour;
+
+        if (neighbours.TryGetValue(Direction.North, out neighbour))
+        {
+            neighbour.RemoveNeighbour(Direction.South);
+           // RemoveNeighbour(Direction.North);
+        }
+        else if (neighbours.TryGetValue(Direction.South, out neighbour))
+        {
+            neighbour.RemoveNeighbour(Direction.North);
+           // RemoveNeighbour(Direction.South);
+        }
+        else if (neighbours.TryGetValue(Direction.East, out neighbour))
+        {
+            neighbour.RemoveNeighbour(Direction.West);
+           // RemoveNeighbour(Direction.East);
+        }
+        else if (neighbours.TryGetValue(Direction.West, out neighbour))
+        {
+            neighbour.RemoveNeighbour(Direction.East);
+           // RemoveNeighbour(Direction.West);
+        }
+
+        //foreach (KeyValuePair<Direction, Cell> neighbour in neighbours)
+        //{
+        //    if (neighbour.Value.Mask != -1 && neighbour.Value.Mask != Mask)
+        //    {
+        //        if (neighbour.Key == Direction.North)
+        //        {
+        //            neighbour.Value.RemoveNeighbour(Direction.South);
+        //        }
+        //        else if (neighbour.Key == Direction.South)
+        //        {
+        //            neighbour.Value.RemoveNeighbour(Direction.North);
+        //        }
+        //        else if (neighbour.Key == Direction.East)
+        //        {
+        //            neighbour.Value.RemoveNeighbour(Direction.West);
+        //        }
+        //        else if (neighbour.Key == Direction.West)
+        //        {
+        //            neighbour.Value.RemoveNeighbour(Direction.East);
+        //        }
+        //    }
+
+        //    neighbours.Remove(neighbour.Key);
+        //}
+    }
+
+    public void RemoveLinks()
+    {
+        for (int i = 0; i < Links.Count; i++)
+        {
+            Links[i].UnlinkCell(this, true);
+        }
+    }
 }
 
