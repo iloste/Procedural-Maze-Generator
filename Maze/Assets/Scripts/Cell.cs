@@ -16,6 +16,7 @@ public class Cell
 
     public int Row { get; private set; }
     public int Column { get; private set; }
+
     public Dictionary<Direction, Cell> neighbours = new Dictionary<Direction, Cell>();
     public List<Cell> Links { get; private set; }
     public bool Visited { get; set; } = false;
@@ -24,6 +25,7 @@ public class Cell
     public int GridNum { get; set; }
     public bool InRoom { get; set; }
     public int Region { get; set; }
+    public bool isDoor { get; set; }
 
     public Cell(int column, int row)
     {

@@ -593,6 +593,15 @@ public class MazeGenerator : MonoBehaviour
 
             randomEgde.currentCell.LinkCell(randomEgde.connectedCell, true);
 
+            if (randomEgde.currentCell.InRoom)
+            {
+                randomEgde.currentCell.isDoor = true;
+            }
+            else if (randomEgde.connectedCell.InRoom)
+            {
+                randomEgde.connectedCell.isDoor = true;
+            }
+
             int higherRegion;
             int lowerRegion;
 
