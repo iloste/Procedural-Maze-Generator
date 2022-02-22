@@ -1,58 +1,76 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-public class Connector
+namespace MGT
 {
-    public Cell currentCell;
-    public Cell connectedCell;
-
-
-    public bool SameConnection(int a, int b)
+    public class Connector
     {
-        if (currentCell.Region == a && connectedCell.Region == b ||
-            currentCell.Region == b && connectedCell.Region == a)
-        {
-            return true;
-        }
+        public Cell currentCell;
+        public Cell connectedCell;
 
-        return false;
-    }
 
-    public bool ConnectsToRegion(int a)
-    {
-        if (currentCell.Region == a || connectedCell.Region == a)
+        /// <summary>
+        /// Returns true if the currentCell's and connectedCell's regions match either: 
+        /// regionA and regionB or regionB and regionA, respectively
+        /// </summary>
+        public bool SameConnection(int regionA, int regionB)
         {
-            return true;
-        }
-        else
-        {
+            if (currentCell.Region == regionA && connectedCell.Region == regionB ||
+                currentCell.Region == regionB && connectedCell.Region == regionA)
+            {
+                return true;
+            }
+
             return false;
         }
-    }
 
 
-    public void MergeRegions(int oldRegion, int newRegion)
-    {
-        if (currentCell.Region == oldRegion)
+        /// <summary>
+        /// Returns true if either cell is part of the given region
+        /// </summary>
+        public bool ConnectsToRegion(int region)
         {
-            currentCell.Region = newRegion;
+            if (currentCell.Region == region || connectedCell.Region == region)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
-        else if (connectedCell.Region == oldRegion)
-        {
-            connectedCell.Region = newRegion;
-        }
-    }
 
-    public bool IsOneRegion()
-    {
-        if (currentCell.Region == connectedCell.Region)
+
+        /// <summary>
+        /// Changes currentCell's and/or connectedCell's regions to the newRegion if they were in the oldRegion
+        /// </summary>
+        /// <param name="oldRegion"></param>
+        /// <param name="newRegion"></param>
+        public void MergeRegions(int oldRegion, int newRegion)
         {
-            return true;
+            if (currentCell.Region == oldRegion)
+            {
+                currentCell.Region = newRegion;
+            }
+            else if (connectedCell.Region == oldRegion)
+            {
+                connectedCell.Region = newRegion;
+            }
         }
-        else
+
+
+        /// <summary>
+        /// Returns true if currentCell and connectedCell are in the same region
+        /// </summary>
+        /// <returns></returns>
+        public bool IsOneRegion()
         {
-            return false;
+            if (currentCell.Region == connectedCell.Region)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

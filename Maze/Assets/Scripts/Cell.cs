@@ -1,423 +1,442 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class Cell
+namespace MGT
 {
-    public enum Direction
+    public class Cell
     {
-        Default,
-        North,
-        South,
-        East,
-        West,
-    }
-
-    public int Row { get; private set; }
-    public int Column { get; private set; }
-
-    public Dictionary<Direction, Cell> neighbours = new Dictionary<Direction, Cell>();
-    public List<Cell> Links { get; private set; }
-    public bool Visited { get; set; } = false;
-    public int Mask { get; set; }
-    public Tile Tile { get; set; }
-    public int GridNum { get; set; }
-    public bool InRoom { get; set; }
-    public int Region { get; set; }
-    public bool isDoor { get; set; }
-
-    public Cell(int column, int row)
-    {
-        this.Row = row;
-        this.Column = column;
-        Links = new List<Cell>();
-    }
-
-
-    public Cell(int row, int column, int gridNum) : this(row, column)
-    {
-        GridNum = gridNum;
-    }
-
-
-    public bool IsLinked(Cell cell)
-    {
-        if (cell != null)
+        public enum CardinalDirection
         {
-            foreach (Cell c in Links)
+            Default,
+            North,
+            South,
+            East,
+            West,
+        }
+
+
+        #region Variables
+        public int Row { get; private set; }
+        public int Column { get; private set; }
+
+        public Dictionary<CardinalDirection, Cell> neighbours = new Dictionary<CardinalDirection, Cell>();
+        /// <summary>
+        /// Cells that form a passageway with the current cell
+        /// </summary>
+        public List<Cell> Links { get; private set; }
+        public bool Visited { get; set; } = false;
+        public int Mask { get; set; }
+        public Tile Tile { get; set; }
+        public int GridNum { get; set; }
+        public bool InRoom { get; set; }
+        public int Region { get; set; }
+        public bool isDoor { get; set; }
+
+        #endregion
+
+
+        #region Constructors
+        public Cell(int column, int row)
+        {
+            this.Row = row;
+            this.Column = column;
+            Links = new List<Cell>();
+        }
+
+
+        public Cell(int row, int column, int gridNum) : this(row, column)
+        {
+            GridNum = gridNum;
+        }
+
+        #endregion
+
+
+        #region Linked cell functions
+
+        /// <summary>
+        /// Links this cell to the given cell so that they will form a passageway.
+        /// </summary>
+        /// <param name="newLink">The cell to be linked to</param>
+        /// <param name="bidi">If true, will call the function again from the given cell</param>
+        public void LinkCell(Cell newLink, bool bidi)
+        {
+            if (newLink != null)
             {
-                if (c != null)
+                Links.Add(newLink);
+
+                if (bidi)
                 {
-                    if (c == cell)
+                    newLink.LinkCell(this, false);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// The cells will no longer form a passageway. This does not remove them as neighbours.
+        /// </summary>
+        /// <param name="cell">The cell to unlink from</param>
+        /// <param name="bidi">If true, will call the function again from the given cell</param>
+        public void UnlinkCell(Cell cell, bool bidi)
+        {
+            if (cell != null)
+            {
+                Links.Remove(cell);
+
+                if (bidi)
+                {
+                    cell.UnlinkCell(this, false);
+                }
+            }
+        }
+
+        
+        public bool IsLinked(Cell cell)
+        {
+            if (cell != null)
+            {
+                foreach (Cell c in Links)
+                {
+                    if (c != null)
+                    {
+                        if (c == cell)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
+        /// Checks if the cell is linked to the neighbour of the given direction
+        /// </summary>
+        public bool IsLinked(CardinalDirection direction)
+        {
+            if (direction != CardinalDirection.Default)
+            {
+                if (neighbours.ContainsKey(direction))
+                {
+                    if (Links.Contains(neighbours[direction]))
                     {
                         return true;
                     }
                 }
             }
+
+            return false;
         }
 
-        return false;
-    }
 
-    public bool IsLinked(Direction direction)
-    {
-        if (direction != Direction.Default)
+        public void RemoveAllLinks()
         {
-            if (neighbours.ContainsKey(direction))
+            for (int i = 0; i < Links.Count; i++)
             {
-                if (Links.Contains(neighbours[direction]))
+                Links[i].UnlinkCell(this, true);
+            }
+        }
+
+        #endregion
+
+
+        #region Neighbour Functions
+
+        public void SetNeighour(Cell newNeighbour, CardinalDirection direction)
+        {
+            if (newNeighbour == null)
+            {
+                return;
+            }
+            else if (newNeighbour.Mask == -1 || Mask == -1)
+            {
+                return;
+            }
+
+            if (!neighbours.ContainsKey(direction))
+            {
+                switch (direction)
                 {
-                    return true;
+                    case CardinalDirection.Default:
+                        throw new System.Exception("no direction");
+                    case CardinalDirection.North:
+                        neighbours.Add(CardinalDirection.North, newNeighbour);
+                        newNeighbour.neighbours.Add(CardinalDirection.South, this);
+                        break;
+                    case CardinalDirection.South:
+                        neighbours.Add(CardinalDirection.South, newNeighbour);
+                        newNeighbour.neighbours.Add(CardinalDirection.North, this);
+                        break;
+                    case CardinalDirection.East:
+                        neighbours.Add(CardinalDirection.East, newNeighbour);
+                        newNeighbour.neighbours.Add(CardinalDirection.West, this);
+                        break;
+                    case CardinalDirection.West:
+                        neighbours.Add(CardinalDirection.West, newNeighbour);
+                        newNeighbour.neighbours.Add(CardinalDirection.East, this);
+                        break;
+                    default:
+                        break;
                 }
             }
         }
 
-        return false;
-    }
 
-
-
-
-    public void SetNeighour(Cell cell, Direction direction)
-    {
-        if (cell == null)
+        /// <summary>
+        /// Used to set neighbour cells that aren't on a conventional 2D grid. For example, connecting the east side of a cell to the south 
+        /// side of another cell.
+        /// </summary>
+        /// <param name="newNeigbour"></param>
+        /// <param name="direction1">newNeighbour will be the 'direction1 neighbour' (eg; 'east neighbour')</param>
+        /// <param name="direction2">this cell will be the 'direction2 neighbour' (eg: 'south neighbour') for the newNeighbour</param>
+        public void SetNeighour(Cell newNeigbour, CardinalDirection direction1, CardinalDirection direction2)
         {
-            return;
-        }
-        else if (cell.Mask == -1 || Mask == -1)
-        {
-            return;
+            if (newNeigbour == null)
+            {
+                return;
+            }
+            else if (newNeigbour.Mask == -1 || Mask == -1)
+            {
+                return;
+            }
+
+            if (!neighbours.ContainsKey(direction1) && !newNeigbour.neighbours.ContainsKey(direction2))
+            {
+                neighbours.Add(direction1, newNeigbour);
+                newNeigbour.neighbours.Add(direction2, this);
+            }
+            else
+            {
+                Debug.LogError("Neighbour Exists");
+            }
         }
 
-        if (!neighbours.ContainsKey(direction))
+
+        /// <summary>
+        /// Removes the cell in the given direction as a neighbour. This does not unlink them if they were linked.
+        /// </summary>
+        public void RemoveNeighbour(CardinalDirection direction)
         {
             switch (direction)
             {
-                case Direction.Default:
+                case CardinalDirection.Default:
                     throw new System.Exception("no direction");
-                case Direction.North:
-                    neighbours.Add(Direction.North, cell);
-                    cell.neighbours.Add(Direction.South, this);
+                case CardinalDirection.North:
+                    neighbours[CardinalDirection.North].neighbours.Remove(CardinalDirection.South);
+                    neighbours.Remove(CardinalDirection.North);
                     break;
-                case Direction.South:
-                    neighbours.Add(Direction.South, cell);
-                    cell.neighbours.Add(Direction.North, this);
+                case CardinalDirection.South:
+                    neighbours[CardinalDirection.South].neighbours.Remove(CardinalDirection.North);
+                    neighbours.Remove(CardinalDirection.South);
                     break;
-                case Direction.East:
-                    neighbours.Add(Direction.East, cell);
-                    cell.neighbours.Add(Direction.West, this);
+                case CardinalDirection.East:
+                    neighbours[CardinalDirection.East].neighbours.Remove(CardinalDirection.West);
+                    neighbours.Remove(CardinalDirection.East);
                     break;
-                case Direction.West:
-                    neighbours.Add(Direction.West, cell);
-                    cell.neighbours.Add(Direction.East, this);
+                case CardinalDirection.West:
+                    neighbours[CardinalDirection.West].neighbours.Remove(CardinalDirection.East);
+                    neighbours.Remove(CardinalDirection.West);
                     break;
                 default:
                     break;
             }
         }
-    }
 
 
-    public void SetNeighour(Cell cell, Direction direction1, Direction direction2)
-    {
-        if (cell == null)
+        /// <summary>
+        /// Returns a neighbour in the given mask. Returns a random neighbour from any mask if the given mask is 0.
+        /// Returns null if no suitable neighbours.
+        /// </summary>
+        /// <param name="mask">Works on cells on the given mask. If 0, works with all valid cells</param>
+        /// <returns></returns>
+        public Cell GetRandomNeighbour(int mask = 0)
         {
-            return;
-        }
-        else if (cell.Mask == -1 || Mask == -1)
-        {
-            return;
-        }
-
-        if (!neighbours.ContainsKey(direction1) && !cell.neighbours.ContainsKey(direction2))
-        {
-            neighbours.Add(direction1, cell);
-            cell.neighbours.Add(direction2, this);
-        }
-        else
-        {
-            Debug.LogError("Neighbour Exists");
-        }
-    }
-
-    public void RemoveNeighbour(Direction direction)
-    {
-        switch (direction)
-        {
-            case Direction.Default:
-                throw new System.Exception("no direction");
-            case Direction.North:
-                neighbours[Direction.North].neighbours.Remove(Direction.South);
-                neighbours.Remove(Direction.North);
-                break;
-            case Direction.South:
-                neighbours[Direction.South].neighbours.Remove(Direction.North);
-                neighbours.Remove(Direction.South);
-                break;
-            case Direction.East:
-                neighbours[Direction.East].neighbours.Remove(Direction.West);
-                neighbours.Remove(Direction.East);
-                break;
-            case Direction.West:
-                neighbours[Direction.West].neighbours.Remove(Direction.East);
-                neighbours.Remove(Direction.West);
-                break;
-            default:
-                break;
-        }
-    }
-
-    public void LinkCell(Cell cell, bool bidi)
-    {
-        if (cell != null)
-        {
-            Links.Add(cell);
-
-            if (bidi)
+            if (mask == 0)
             {
-                cell.LinkCell(this, false);
+                Cell neighbour = neighbours.ElementAt(Random.Range(0, neighbours.Count)).Value;
+                return neighbour;
+            }
+            else
+            {
+                List<Cell> validNeighbours = new List<Cell>();
+
+                for (int i = 0; i < neighbours.Count; i++)
+                {
+                    if (neighbours.ElementAt(i).Value.Mask == mask)
+                    {
+                        validNeighbours.Add(neighbours.ElementAt(i).Value);
+                    }
+                }
+
+                if (validNeighbours.Count > 0)
+                {
+                    return validNeighbours.ElementAt(Random.Range(0, validNeighbours.Count));
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
-    }
 
-    public void UnlinkCell(Cell cell, bool bidi)
-    {
-        if (cell != null)
+
+        /// <summary>
+        /// returns the first dead end neighbour. Returns null if there aren't any.
+        /// </summary>
+        public Cell GetDeadEndNeighbour()
         {
-            Links.Remove(cell);
-
-            if (bidi)
+            for (int i = 0; i < neighbours.Count; i++)
             {
-                cell.UnlinkCell(this, false);
+                if (neighbours.ElementAt(i).Value.Links.Count == 1)
+                {
+                    return neighbours.ElementAt(i).Value;
+                }
             }
+
+            return null;
         }
-    }
 
 
-    /// <summary>
-    /// Returns a neighbour in the given mask. Returns a random neighbour from any mask if the given mask is 0.
-    /// Returns null if no suitable neighbours.
-    /// </summary>
-    /// <param name="mask"></param>
-    /// <returns></returns>
-    public Cell GetRandomNeighbour(int mask = 0)
-    {
-        if (mask == 0)
+        /// <summary>
+        /// Returns a random unvisited neighbour on the given mask. Returns null if there are none.
+        /// </summary>
+        /// <param name="mask">If the mask is 0, it works for all masks</param>
+        /// <returns></returns>
+        public Cell GetRandomUnvisitedNeighbour(int mask = 0)
         {
-            Cell neighbour = neighbours.ElementAt(Random.Range(0, neighbours.Count)).Value;
-            return neighbour;
+            List<Cell> unvisitedNeighbours = new List<Cell>();
+
+            for (int i = 0; i < neighbours.Count; i++)
+            {
+                if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
+                {
+                    if (!neighbours.ElementAt(i).Value.Visited)
+                    {
+                        unvisitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                    }
+                }
+            }
+
+            if (unvisitedNeighbours.Count == 0)
+            {
+                return null;
+            }
+
+            return unvisitedNeighbours[Random.Range(0, unvisitedNeighbours.Count)];
         }
-        else
+
+
+        /// <summary>
+        /// Returns true if at least one of the neighbours have been visited.
+        /// </summary>
+        public bool HasVisitedNeighbour()
+        {
+            for (int i = 0; i < neighbours.Count; i++)
+            {
+                if (neighbours.ElementAt(i).Value.Visited)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
+        /// Returns a random visited neighbour. Returns null if there aren't any.
+        /// </summary>
+        /// <param name="mask">Works on cells on the given mask. If 0, works with all valid cells</param>
+        public Cell GetRandomVisitedNeighbour(int mask = 0)
+        {
+            List<Cell> visitedNeighbours = new List<Cell>();
+
+            for (int i = 0; i < neighbours.Count; i++)
+            {
+                if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
+                {
+                    if (neighbours.ElementAt(i).Value.Visited)
+                    {
+                        visitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                    }
+                }
+            }
+
+            if (visitedNeighbours.Count == 0)
+            {
+                return null;
+            }
+
+            return visitedNeighbours[Random.Range(0, visitedNeighbours.Count)];
+        }
+
+
+        /// <summary>
+        /// Returns a list of all the neighbours on the given mask.
+        /// </summary>
+        /// <param name="mask">If the mask is 0, it works for all masks</param>
+        public List<Cell> GetNeighbours(int mask = 0)
         {
             List<Cell> validNeighbours = new List<Cell>();
 
             for (int i = 0; i < neighbours.Count; i++)
             {
-                if (neighbours.ElementAt(i).Value.Mask == mask)
+                if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
                 {
                     validNeighbours.Add(neighbours.ElementAt(i).Value);
                 }
             }
 
-            if (validNeighbours.Count > 0)
-            {
-                return validNeighbours.ElementAt(Random.Range(0, validNeighbours.Count));
-            }
-            else
-            {
-                return null;
-            }
-        }
-    }
-
-
-    /// <summary>
-    /// returns the first dead end neighbour. Returns null if there aren't any.
-    /// </summary>
-    /// <returns></returns>
-    public Cell DeadEndNeighbour()
-    {
-        for (int i = 0; i < neighbours.Count; i++)
-        {
-            if (neighbours.ElementAt(i).Value.Links.Count == 1)
-            {
-                return neighbours.ElementAt(i).Value;
-            }
+            return validNeighbours;
         }
 
-        return null;
-    }
 
-
-    /// <summary>
-    /// Returns a random unvisited neighbour. Returns null if there are none.
-    /// </summary>
-    /// <returns></returns>
-    public Cell RandomUnvisitedNeighbour(int mask = 0)
-    {
-        List<Cell> unvisitedNeighbours = new List<Cell>();
-
-        for (int i = 0; i < neighbours.Count; i++)
+        /// <summary>
+        /// Returns a neighbour that's on another layer, if there is one. Returns null if there isn't
+        /// </summary>
+        /// <returns></returns>
+        public Cell GetBoarderingNeighbour()
         {
-            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
+            foreach (KeyValuePair<CardinalDirection, Cell> neighbour in neighbours)
             {
-                if (!neighbours.ElementAt(i).Value.Visited)
+                if (neighbour.Value.Mask != -1 && neighbour.Value.Mask != Mask)
                 {
-                    unvisitedNeighbours.Add(neighbours.ElementAt(i).Value);
+                    return neighbour.Value;
                 }
             }
-        }
 
-        if (unvisitedNeighbours.Count == 0)
-        {
             return null;
         }
 
-        return unvisitedNeighbours[Random.Range(0, unvisitedNeighbours.Count)];
-    }
 
-
-    /// <summary>
-    /// Returns true if at least one of the neighbours have been visited.
-    /// </summary>
-    /// <returns></returns>
-    public bool HasVisitedNeighbour()
-    {
-        for (int i = 0; i < neighbours.Count; i++)
+        /// <summary>
+        /// Removes all the neighbours. If they were linked cells, they will still need to be unlinked.
+        /// </summary>
+        public void RemoveNeighbours()
         {
-            if (neighbours.ElementAt(i).Value.Visited)
+            Cell neighbour;
+
+            if (neighbours.TryGetValue(CardinalDirection.North, out neighbour))
             {
-                return true;
+                neighbour.RemoveNeighbour(CardinalDirection.South);
+            }
+            else if (neighbours.TryGetValue(CardinalDirection.South, out neighbour))
+            {
+                neighbour.RemoveNeighbour(CardinalDirection.North);
+            }
+            else if (neighbours.TryGetValue(CardinalDirection.East, out neighbour))
+            {
+                neighbour.RemoveNeighbour(CardinalDirection.West);
+            }
+            else if (neighbours.TryGetValue(CardinalDirection.West, out neighbour))
+            {
+                neighbour.RemoveNeighbour(CardinalDirection.East);
             }
         }
-
-        return false;
-    }
-
-
-    /// <summary>
-    /// Returns a random visited neighbour. Returns null if there aren't any.
-    /// </summary>
-    /// <returns></returns>
-    public Cell GetRandomVisitedNeighbour(int mask)
-    {
-        List<Cell> visitedNeighbours = new List<Cell>();
-
-        for (int i = 0; i < neighbours.Count; i++)
-        {
-            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
-            {
-                if (neighbours.ElementAt(i).Value.Visited)
-                {
-                    visitedNeighbours.Add(neighbours.ElementAt(i).Value);
-                }
-            }
-        }
-
-        if (visitedNeighbours.Count == 0)
-        {
-            return null;
-        }
-
-        return visitedNeighbours[Random.Range(0, visitedNeighbours.Count)];
-    }
-
-
-    /// <summary>
-    /// Returns a list of all the neighbours on the given mask.
-    /// </summary>
-    /// <param name="mask"></param>
-    /// <returns></returns>
-    public List<Cell> GetNeighbours(int mask = 0)
-    {
-        List<Cell> validNeighbours = new List<Cell>();
-
-        for (int i = 0; i < neighbours.Count; i++)
-        {
-            if (mask == 0 || neighbours.ElementAt(i).Value.Mask == mask)
-            {
-                validNeighbours.Add(neighbours.ElementAt(i).Value);
-            }
-        }
-
-        return validNeighbours;
-    }
-
-    /// <summary>
-    /// Returns a neighbour that's on another layer, if there is one. Returns null if there isn't
-    /// </summary>
-    /// <returns></returns>
-    public Cell GetBoardingNeighbour()
-    {
-        foreach (KeyValuePair<Direction, Cell> neighbour in neighbours)
-        {
-            if (neighbour.Value.Mask != -1 && neighbour.Value.Mask != Mask)
-            {
-                return neighbour.Value;
-            }
-        }
-
-        return null;
-    }
-
-    public void RemoveNeighbours()
-    {
-        Cell neighbour;
-
-        if (neighbours.TryGetValue(Direction.North, out neighbour))
-        {
-            neighbour.RemoveNeighbour(Direction.South);
-           // RemoveNeighbour(Direction.North);
-        }
-        else if (neighbours.TryGetValue(Direction.South, out neighbour))
-        {
-            neighbour.RemoveNeighbour(Direction.North);
-           // RemoveNeighbour(Direction.South);
-        }
-        else if (neighbours.TryGetValue(Direction.East, out neighbour))
-        {
-            neighbour.RemoveNeighbour(Direction.West);
-           // RemoveNeighbour(Direction.East);
-        }
-        else if (neighbours.TryGetValue(Direction.West, out neighbour))
-        {
-            neighbour.RemoveNeighbour(Direction.East);
-           // RemoveNeighbour(Direction.West);
-        }
-
-        //foreach (KeyValuePair<Direction, Cell> neighbour in neighbours)
-        //{
-        //    if (neighbour.Value.Mask != -1 && neighbour.Value.Mask != Mask)
-        //    {
-        //        if (neighbour.Key == Direction.North)
-        //        {
-        //            neighbour.Value.RemoveNeighbour(Direction.South);
-        //        }
-        //        else if (neighbour.Key == Direction.South)
-        //        {
-        //            neighbour.Value.RemoveNeighbour(Direction.North);
-        //        }
-        //        else if (neighbour.Key == Direction.East)
-        //        {
-        //            neighbour.Value.RemoveNeighbour(Direction.West);
-        //        }
-        //        else if (neighbour.Key == Direction.West)
-        //        {
-        //            neighbour.Value.RemoveNeighbour(Direction.East);
-        //        }
-        //    }
-
-        //    neighbours.Remove(neighbour.Key);
-        //}
-    }
-
-    public void RemoveLinks()
-    {
-        for (int i = 0; i < Links.Count; i++)
-        {
-            Links[i].UnlinkCell(this, true);
-        }
+        #endregion
     }
 }
-

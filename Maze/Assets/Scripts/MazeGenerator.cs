@@ -1,88 +1,111 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
-
-public class MazeGenerator : MonoBehaviour
+namespace MGT
 {
-    public Algorithm algorithm;
-    public List<Algorithm> algorithms = new List<Algorithm>();
-    public Colouring colouring;
-    public Vector2Int gridSize;
-    public bool braidMaze;
-    public int braidPercentage;
-    public bool displayDeadEnds;
-    public int currentMask;
-    public MazeDisplay mazeDisplay;
-    public bool useCuboidMaze;
-    public Texture2D layerImage;
-    public bool useRandomSeed = true;
-    public int seed;
-    public int layerColourCount;
-    public List<Color> layerColours = new List<Color>();
-    public int tab;
-    public bool removeDeadends;
-
-    MyGrid grid;
-    Pathfinding pf;
-
-    public float xzScale = 1;
-    public float yScale = 1;
-
-    public enum Algorithm
+    public class MazeGenerator : MonoBehaviour
     {
-        BinaryTree,
-        SideWinder,
-        AldousBroder,
-        Wilson,
-        AldousBroderLive,
-        RecursiveBacktracker,
-        HuntAndKill,
-        CreateRoom,
-        IgnoreLayer,
-    }
 
-    public enum Colouring
-    {
-        None,
-        PathBetween,
-        LongestPath,
-        ColourMaze,
-    }
+        #region Variables
+        public Algorithm algorithm;
+        public List<Algorithm> algorithms = new List<Algorithm>();
+        public Vector2Int gridSize;
+        public bool braidMaze;
+        public int braidPercentage;
+        public bool displayDeadEnds;
+        public int currentMask;
+        public MazeDisplay mazeDisplay;
+        public bool useCuboidMaze;
+        public Texture2D layerImage;
+        public bool useRandomSeed = true;
+        public int seed;
+        public int layerColourCount;
+        public List<Color> layerColours = new List<Color>();
+        public int tab;
+        public bool removeDeadends;
 
+        MazeGenGrid grid;
+        Pathfinding pf;
 
+        public float xzScale = 1;
+        public float yScale = 1;
 
+        #endregion
 
-    public void DeleteMaze()
-    {
-        while (transform.childCount > 0)
+        public enum Algorithm
         {
-            DestroyImmediate(transform.GetChild(0).gameObject);
-        }
-    }
-
-    public void GenerateMaze()
-    {
-       
-
-        if (useRandomSeed)
-        {
-            seed = Random.Range(0, 10000000);
+            BinaryTree,
+            SideWinder,
+            AldousBroder,
+            Wilson,
+            AldousBroderLive,
+            RecursiveBacktracker,
+            HuntAndKill,
+            CreateRoom,
+            IgnoreLayer,
         }
 
-        Random.InitState(seed);
+        public enum Colouring
+        {
+            None,
+            PathBetween,
+            LongestPath,
+            ColourMaze,
+        }
 
-        if (tab == 1)
+
+        /// <summary>
+        /// Generates and Displays the a maze with all of the data held in the instance
+        /// </summary>
+        public void GenerateMaze()
+        {
+            InitialiseSeed();   
+
+            if (tab == 1)
+            {
+                GenerateImageBasedMaze();
+            }
+            else
+            {
+                GenerateAutoGridMaze();
+            }
+
+            ConnectRegions();
+            BraidMaze();
+
+            if (removeDeadends)
+            {
+                RemoveDeadEnds();
+            }
+
+            mazeDisplay = GetComponent<MazeDisplay>();
+            mazeDisplay.DisplayGrid(grid, xzScale, yScale);
+        }
+
+
+        /// <summary>
+        /// Generates a maze that fills the grid the size of columns and rows
+        /// </summary>
+        private void GenerateAutoGridMaze()
+        {
+            grid = new MazeGenGrid(gridSize.x, gridSize.y);
+            RunMazeGenAlgorithm(algorithm, 0);
+        }
+
+
+        /// <summary>
+        /// Generates a maze based on the masks gathered from the given image
+        /// </summary>
+        private void GenerateImageBasedMaze()
         {
             if (layerImage != null)
             {
                 Color[] bitmap = layerImage.GetPixels();
-                grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
+                grid = new MazeGenGrid(bitmap, layerColours, layerImage.width, layerImage.height);
 
                 for (int i = 1; i < algorithms.Count; i++)
                 {
-                    GenerateMaze(algorithms[i], i);
+                    RunMazeGenAlgorithm(algorithms[i], i);
                 }
             }
             else
@@ -90,594 +113,524 @@ public class MazeGenerator : MonoBehaviour
                 Debug.LogError("No Layer Image Selected");
             }
         }
-        else
+
+
+        private void InitialiseSeed()
         {
-            grid = new MyGrid(gridSize.x, gridSize.y);
-            GenerateMaze(algorithm, 0);
-        }
-
-
-
-        ConnectRegions();
-        BraidMaze();
-
-        if (removeDeadends)
-        {
-            RemoveDeadEnds();
-        }
-
-        mazeDisplay = GetComponent<MazeDisplay>();
-        mazeDisplay.DisplayGrid(grid, xzScale, yScale);
-
-        DisplayDeadEnds();
-
-        //Color[] bitmap = layerImage.GetPixels();
-        //grid = new MyGrid(bitmap, layerColours, layerImage.width, layerImage.height);
-
-        //GenerateMaze(algorithm, 1);
-        //GenerateMaze(Algorithm.LinkAllCells, 2);
-
-        // mazeDisplay.DisplayGrid(grid);
-        //DisplayGrid(grid);
-        //Pathfinding();
-    }
-
-    public MyGrid GetGrid()
-    {
-        return grid;
-    }
-
-    #region Start Functions
-    private void GenerateMaze(Algorithm algorithm, int currentMask = 0)
-    {
-        switch (algorithm)
-        {
-            case Algorithm.BinaryTree:
-                BinaryTree(grid);
-                break;
-            case Algorithm.SideWinder:
-                SideWinder(grid);
-                break;
-            case Algorithm.AldousBroder:
-                AldousBroder(grid, currentMask);
-
-                break;
-            case Algorithm.Wilson:
-                Wilson(grid, currentMask);
-                break;
-            case Algorithm.RecursiveBacktracker:
-                RecursiveBacktracker(grid, currentMask);
-                break;
-            case Algorithm.HuntAndKill:
-                HuntAndKill(grid, currentMask);
-                break;
-            case Algorithm.CreateRoom:
-                LinkAllCells(grid, currentMask);
-                break;
-            default:
-                break;
-        }
-    }
-
-
-    private void BraidMaze()
-    {
-        if (braidMaze)
-        {
-            grid.BraidMaze(braidPercentage);
-        }
-    }
-
-
-    private void Pathfinding()
-    {
-        pf = new Pathfinding(grid.Columns, grid.Rows);
-
-        switch (colouring)
-        {
-            case Colouring.None:
-                break;
-            case Colouring.PathBetween:
-                DisplayPath(pf.ShortestPath(grid.GetCell(0, grid.Rows - 1), grid.GetCell(grid.Columns - 1, 0)));
-                break;
-            case Colouring.LongestPath:
-                DisplayPath(pf.FindLongestPath(grid, grid.GetCell(0, 0)));
-                break;
-            case Colouring.ColourMaze:
-                pf.FloodGrid(grid.GetCell(grid.Columns / 2, grid.Rows / 2));
-                DisplayGridColour(grid, pf.maxDistance);
-                break;
-            default:
-                break;
-        }
-    }
-
-
-
-
-    void DisplayGridColour(MyGrid grid, int maxDistance)
-    {
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
+            if (useRandomSeed)
             {
-                if (grid.CellValid(column, row))
-                {
-                    Cell cell = grid.GetCell(column, row);
-                    float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
-                    cell.Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
-                }
+                seed = Random.Range(0, 10000000);
+            }
+
+            Random.InitState(seed);
+        }
+
+
+        /// <summary>
+        /// Deletes the child objects that form the maze in the editor
+        /// </summary>
+        public void DestroyMaze()
+        {
+            while (transform.childCount > 0)
+            {
+                DestroyImmediate(transform.GetChild(0).gameObject);
             }
         }
-    }
+      
 
-
-    void DisplayPath(Stack<Cell> path)
-    {
-        int maxDistance = path.Count;
-
-        while (path.Count > 0)
+        /// <summary>
+        /// Connects all of the different layers together. Each region gets at least 1 connection.
+        /// </summary>
+        private void ConnectRegions()
         {
-            Cell cell = path.Pop();
-            float normVal = (float)pf.GetDistanceFromOrigin(cell) / maxDistance;
-            GameObject floor = cell.Tile.floor;
-            floor.GetComponent<MeshRenderer>().material.color = new Color(0, 1 - normVal, 0);
-        }
-    }
+            List<Connector> connectors = grid.GetConnectingCells();
 
-
-    void DisplayDeadEnds()
-    {
-        // To do: Find a way to show which cells are deadends without changing/losing the original materials so that they can be reverted
-        // to their original state.
-        if (displayDeadEnds)
-        {
-            List<Cell> deadEnds = grid.GetDeadEnds();
-
-            for (int i = 0; i < deadEnds.Count; i++)
+            while (connectors.Count > 0)
             {
-                deadEnds[i].Tile.floor.GetComponent<MeshRenderer>().material.color = new Color(1, 0, 0);
-                //deadEnds[i].Tile.transform.GetComponent<MeshRenderer>().sharedMaterial.color = new Color(1, 0, 0);
-            }
-        }
-    }
+                int index = Random.Range(0, connectors.Count);
+                Connector randomEgde = connectors[index];
+                connectors.RemoveAt(index);
 
-    #endregion
-
-
-    #region Binary Tree
-    /// <summary>
-    /// Creates a grid using the Binary Tree method.
-    /// </summary>
-    /// <param name="grid"></param>
-    private void BinaryTree(MyGrid grid)
-    {
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                List<Cell> neighbours = new List<Cell>();
-                Cell cell = grid.GetCell(column, row);
-                Cell neighbour;
-
-                // try to get north and east neighbours
-                if (cell.neighbours.TryGetValue(Cell.Direction.North, out neighbour))
+                if (randomEgde.IsOneRegion())
                 {
-                    neighbours.Add(neighbour);
-                }
-                if (cell.neighbours.TryGetValue(Cell.Direction.East, out neighbour))
-                {
-                    neighbours.Add(neighbour);
+                    continue;
                 }
 
-                if (neighbours.Count > 0)
+                randomEgde.currentCell.LinkCell(randomEgde.connectedCell, true);
+
+                if (randomEgde.currentCell.InRoom)
                 {
-                    int rInt = Random.Range(0, neighbours.Count);
-                    cell.LinkCell(neighbours[rInt], true);
+                    randomEgde.currentCell.isDoor = true;
+                }
+                else if (randomEgde.connectedCell.InRoom)
+                {
+                    randomEgde.connectedCell.isDoor = true;
                 }
 
-            }
-        }
-    }
-    #endregion
+                int higherRegion;
+                int lowerRegion;
 
-
-    #region SideWinder
-    private void SideWinder(MyGrid grid)
-    {
-        List<Cell> cellsInRun = new List<Cell>();
-        bool endRun = false;
-        bool atEastBoundary = false;
-        bool atNorthBoundary = false;
-
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                Cell cell = grid.GetCell(column, row);
-                cellsInRun.Add(cell);
-
-                if (!cell.neighbours.ContainsKey(Cell.Direction.North))
+                // prepare region variables
+                if (randomEgde.currentCell.Region < randomEgde.connectedCell.Region)
                 {
-                    atNorthBoundary = true;
+                    lowerRegion = randomEgde.currentCell.Region;
+                    higherRegion = randomEgde.connectedCell.Region;
                 }
                 else
                 {
-                    atNorthBoundary = false;
+                    lowerRegion = randomEgde.connectedCell.Region;
+                    higherRegion = randomEgde.currentCell.Region;
                 }
 
-                if (!cell.neighbours.ContainsKey(Cell.Direction.East))
+                for (int i = 0; i < connectors.Count; i++)
                 {
-                    atEastBoundary = true;
-                }
-                else
-                {
-                    atEastBoundary = false;
-                }
-
-                int randomIndex = Random.Range(0, 2);
-
-                if (atEastBoundary || (!atNorthBoundary && randomIndex == 0))
-                {
-                    endRun = true;
-                }
-                else
-                {
-                    endRun = false;
-                }
-
-                if (endRun)
-                {
-                    Cell member = cellsInRun[Random.Range(0, cellsInRun.Count)];
-
-                    if (member.neighbours.ContainsKey(Cell.Direction.North))
+                    // remove connectors connecting the same two regions
+                    if (connectors[i].SameConnection(randomEgde.currentCell.Region, randomEgde.connectedCell.Region))
                     {
-                        member.LinkCell(member.neighbours[Cell.Direction.North], true);
-                    }
-
-                    cellsInRun.Clear();
-                }
-                else
-                {
-                    cell.LinkCell(cell.neighbours[Cell.Direction.East], true);
-                }
-            }
-        }
-    }
-    #endregion
-
-
-    #region Aldous-Broder
-    private void AldousBroder(MyGrid grid, int mask = 0)
-    {
-        int cellCount = grid.GetCellCount(mask);
-        Cell currentCell = grid.GetRandomCell(mask);
-        currentCell.Visited = true;
-        cellCount--;
-
-        while (cellCount > 0)
-        {
-            Cell neighbour = currentCell.GetRandomNeighbour(mask);
-
-            if (!neighbour.Visited)
-            {
-                currentCell.LinkCell(neighbour, true);
-                neighbour.Visited = true;
-                cellCount--;
-            }
-
-            currentCell = neighbour;
-        }
-    }
-    #endregion
-
-
-    #region Aldous-Broder Live
-    private void AldousBroderLive(MyGrid grid)
-    {
-        int cellCount = grid.GetCellCount();
-        Cell currentCell = grid.GetRandomCell();
-        currentCell.Visited = true;
-        cellCount--;
-
-        while (cellCount > 0)
-        {
-            Cell neighbour = currentCell.GetRandomNeighbour();
-
-            if (!neighbour.Visited)
-            {
-                currentCell.LinkCell(neighbour, true);
-                neighbour.Visited = true;
-                cellCount--;
-            }
-
-            currentCell = neighbour;
-        }
-    }
-    #endregion
-
-
-    #region Wilson
-    private void Wilson(MyGrid grid, int mask = 0)
-    {
-        int cellCount = grid.GetCellCount(mask);
-        Cell currentCell = grid.GetRandomCell(mask);
-        grid.GetRandomCell(mask).Visited = true;
-        cellCount--;
-        Stack<Cell> stack = new Stack<Cell>();
-
-        while (cellCount > 0)
-        {
-            while (currentCell.Visited)
-            {
-                currentCell = grid.GetRandomCell(mask);
-            }
-
-            stack.Push(currentCell);
-            Cell neighbour = currentCell.GetRandomNeighbour(mask);
-
-            if (neighbour.Visited)
-            {
-                currentCell = neighbour;
-
-                for (int i = 0; i < stack.Count; i++)
-                {
-                    currentCell.LinkCell(stack.Peek(), true);
-                    currentCell = stack.Pop();
-                    currentCell.Visited = true;
-                    cellCount--;
-                    i--;
-                }
-            }
-            else if (stack.Contains(neighbour))
-            {
-                for (int i = 0; i < stack.Count; i++)
-                {
-                    if (stack.Peek() == neighbour)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        stack.Pop();
+                        connectors.RemoveAt(i);
                         i--;
                     }
-                }
-            }
-            else
-            {
-                currentCell = neighbour;
-            }
-        }
-    }
-    #endregion
-
-
-    #region Recursive Backtracker
-    private void RecursiveBacktracker(MyGrid grid, int mask = 0)
-    {
-        Stack<Cell> cells = new Stack<Cell>();
-        cells.Push(grid.GetRandomCell(mask));
-        cells.Peek().Visited = true;
-
-        while (cells.Count > 0)
-        {
-            Cell currentCell = cells.Peek();
-            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
-
-            if (neighbour != null)
-            {
-                currentCell.LinkCell(neighbour, true);
-                neighbour.Visited = true;
-                cells.Push(neighbour);
-            }
-            else
-            {
-                cells.Pop();
-            }
-        }
-    }
-    private void RecursiveBacktracker(GridStruct grid, int mask = 0)
-    {
-        Stack<Cell> cells = new Stack<Cell>();
-        // cells.Push(grid.GetRandomCell(mask));
-        cells.Push(grid.grid[0, 0]);
-        cells.Peek().Visited = true;
-
-        while (cells.Count > 0)
-        {
-            Cell currentCell = cells.Peek();
-            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
-
-            if (neighbour != null)
-            {
-                currentCell.LinkCell(neighbour, true);
-                neighbour.Visited = true;
-                cells.Push(neighbour);
-            }
-            else
-            {
-                cells.Pop();
-            }
-        }
-    }
-
-    #endregion
-
-
-    #region HuntAndKill
-    private void HuntAndKill(MyGrid grid, int mask = 0)
-    {
-        int cellCount = grid.GetCellCount(mask);
-        Cell currentCell = grid.GetRandomCell(mask);
-        currentCell.Visited = true;
-        cellCount--;
-
-        while (cellCount > 0)
-        {
-            Cell neighbour = currentCell.RandomUnvisitedNeighbour(mask);
-
-            if (neighbour != null)
-            {
-                currentCell.LinkCell(neighbour, true);
-                neighbour.Visited = true;
-                cellCount--;
-                currentCell = neighbour;
-            }
-            else
-            {
-                if (cellCount > 0)
-                {
-                    currentCell = grid.GetUnvisitedCell(true, mask);
-                    currentCell.Visited = true;
-                    neighbour = currentCell.GetRandomVisitedNeighbour(mask);
-                    currentCell.LinkCell(neighbour, true);
-                    cellCount--;
-                }
-            }
-        }
-    }
-    #endregion
-
-    #region Link All Cells
-    /// <summary>
-    /// Links all the cells on a given mask.
-    /// </summary>
-    /// <param name="grid"></param>
-    /// <param name="mask"></param>
-    private void LinkAllCells(MyGrid grid, int mask = 0)
-    {
-        for (int row = 0; row < grid.Rows; row++)
-        {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                // will be null if the cell isn't on the mask
-                Cell cell = grid.GetCell(column, row, mask);
-
-                if (cell != null)
-                {
-                    cell.InRoom = true;
-                    List<Cell> neighbours = cell.GetNeighbours(mask);
-
-                    for (int i = 0; i < neighbours.Count; i++)
+                    // anything connecting to the higher region
+                    else if (connectors[i].ConnectsToRegion(higherRegion))
                     {
-                        if (!cell.IsLinked(neighbours[i]))
+                        // make higher region the same as lower region
+                        connectors[i].MergeRegions(higherRegion, lowerRegion);
+
+                        // if both regions are the same, remove it
+                        if (connectors[i].IsOneRegion())
                         {
-                            cell.LinkCell(neighbours[i], true);
+                            connectors.RemoveAt(i);
+                            i--;
                         }
                     }
                 }
             }
         }
-    }
-    #endregion
 
 
-    /// <summary>
-    /// Connects all of the different layers together. Each region gets at least 1 connection with a chance for a second connection
-    /// </summary>
-    private void ConnectRegions()
-    {
-        List<Connector> connectors = grid.GetConnectingCells();
-
-        while (connectors.Count > 0)
+        /// <summary>
+        /// Removes dead ends by finding a cell with only one link and removing it, then doing the same to it's link until a
+        /// cell with at least 2 links is found.
+        /// </summary>
+        private void RemoveDeadEnds()
         {
-            int index = Random.Range(0, connectors.Count);
-            Connector randomEgde = connectors[index];
-            connectors.RemoveAt(index);
+            Cell cell;
 
-            if (randomEgde.IsOneRegion())
+            for (int row = 0; row < grid.Rows; row++)
             {
-                continue;
-            }
-
-            randomEgde.currentCell.LinkCell(randomEgde.connectedCell, true);
-
-            if (randomEgde.currentCell.InRoom)
-            {
-                randomEgde.currentCell.isDoor = true;
-            }
-            else if (randomEgde.connectedCell.InRoom)
-            {
-                randomEgde.connectedCell.isDoor = true;
-            }
-
-            int higherRegion;
-            int lowerRegion;
-
-            // prepare region variables
-            if (randomEgde.currentCell.Region < randomEgde.connectedCell.Region)
-            {
-                lowerRegion = randomEgde.currentCell.Region;
-                higherRegion = randomEgde.connectedCell.Region;
-            }
-            else
-            {
-                lowerRegion = randomEgde.connectedCell.Region;
-                higherRegion = randomEgde.currentCell.Region;
-            }
-
-            for (int i = 0; i < connectors.Count; i++)
-            {
-                // remove connectors connecting the same two regions
-                if (connectors[i].SameConnection(randomEgde.currentCell.Region, randomEgde.connectedCell.Region))
+                for (int column = 0; column < grid.Columns; column++)
                 {
-                    connectors.RemoveAt(i);
-                    i--;
-                }
-                // anything connecting to the higher region
-                else if (connectors[i].ConnectsToRegion(higherRegion))
-                {
-                    // make higher region the same as lower region
-                    connectors[i].MergeRegions(higherRegion, lowerRegion);
+                    cell = grid.GetCell(column, row, 0);
 
-                    // if both regions are the same, remove it
-                    if (connectors[i].IsOneRegion())
+                    if (cell != null)
                     {
-                        connectors.RemoveAt(i);
+                        if (cell.Links.Count == 1)
+                        {
+                            DeleteCorridor(cell);
+                        }
+                        else if (cell.Links.Count == 0)
+                        {
+                            cell.Mask = -1;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Removes each cell in a corridor that has only one link, starting with the end (the given cell).
+        /// </summary>
+        /// <param name="cell">cell should have only 1 link</param>
+        private void DeleteCorridor(Cell cell)
+        {
+            while (cell.Links.Count == 1)
+            {
+                Cell neighbour = cell.Links[0];
+                cell.RemoveNeighbours();
+                cell.RemoveAllLinks();
+                cell.Mask = -1;
+                cell = neighbour;
+            }
+        }
+
+
+        private void RunMazeGenAlgorithm(Algorithm algorithm, int currentMask = 0)
+        {
+            switch (algorithm)
+            {
+                case Algorithm.BinaryTree:
+                    BinaryTree(grid);
+                    break;
+                case Algorithm.SideWinder:
+                    SideWinder(grid);
+                    break;
+                case Algorithm.AldousBroder:
+                    AldousBroder(grid, currentMask);
+                    break;
+                case Algorithm.Wilson:
+                    Wilson(grid, currentMask);
+                    break;
+                case Algorithm.RecursiveBacktracker:
+                    RecursiveBacktracker(grid, currentMask);
+                    break;
+                case Algorithm.HuntAndKill:
+                    HuntAndKill(grid, currentMask);
+                    break;
+                case Algorithm.CreateRoom:
+                    LinkAllCells(grid, currentMask);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// Removes deadends by joining them with one of their neighbours they haven't yet linked to
+        /// </summary>
+        private void BraidMaze()
+        {
+            if (braidMaze)
+            {
+                grid.BraidMaze(braidPercentage);
+            }
+        }
+
+
+        #region Maze Gen Algorithms
+
+
+        #region Binary Tree
+        /// <summary>
+        /// Creates a grid using the Binary Tree method.
+        /// </summary>
+        /// <param name="grid"></param>
+        private void BinaryTree(MazeGenGrid grid)
+        {
+            for (int row = 0; row < grid.Rows; row++)
+            {
+                for (int column = 0; column < grid.Columns; column++)
+                {
+                    List<Cell> neighbours = new List<Cell>();
+                    Cell cell = grid.GetCell(column, row);
+                    Cell neighbour;
+
+                    // try to get north and east neighbours
+                    if (cell.neighbours.TryGetValue(Cell.CardinalDirection.North, out neighbour))
+                    {
+                        neighbours.Add(neighbour);
+                    }
+                    if (cell.neighbours.TryGetValue(Cell.CardinalDirection.East, out neighbour))
+                    {
+                        neighbours.Add(neighbour);
+                    }
+
+                    if (neighbours.Count > 0)
+                    {
+                        int rInt = Random.Range(0, neighbours.Count);
+                        cell.LinkCell(neighbours[rInt], true);
+                    }
+
+                }
+            }
+        }
+        #endregion
+
+
+        #region SideWinder
+        private void SideWinder(MazeGenGrid grid)
+        {
+            List<Cell> cellsInRun = new List<Cell>();
+            bool endRun = false;
+            bool atEastBoundary = false;
+            bool atNorthBoundary = false;
+
+            for (int row = 0; row < grid.Rows; row++)
+            {
+                for (int column = 0; column < grid.Columns; column++)
+                {
+                    Cell cell = grid.GetCell(column, row);
+                    cellsInRun.Add(cell);
+
+                    if (!cell.neighbours.ContainsKey(Cell.CardinalDirection.North))
+                    {
+                        atNorthBoundary = true;
+                    }
+                    else
+                    {
+                        atNorthBoundary = false;
+                    }
+
+                    if (!cell.neighbours.ContainsKey(Cell.CardinalDirection.East))
+                    {
+                        atEastBoundary = true;
+                    }
+                    else
+                    {
+                        atEastBoundary = false;
+                    }
+
+                    int randomIndex = Random.Range(0, 2);
+
+                    if (atEastBoundary || (!atNorthBoundary && randomIndex == 0))
+                    {
+                        endRun = true;
+                    }
+                    else
+                    {
+                        endRun = false;
+                    }
+
+                    if (endRun)
+                    {
+                        Cell member = cellsInRun[Random.Range(0, cellsInRun.Count)];
+
+                        if (member.neighbours.ContainsKey(Cell.CardinalDirection.North))
+                        {
+                            member.LinkCell(member.neighbours[Cell.CardinalDirection.North], true);
+                        }
+
+                        cellsInRun.Clear();
+                    }
+                    else
+                    {
+                        cell.LinkCell(cell.neighbours[Cell.CardinalDirection.East], true);
+                    }
+                }
+            }
+        }
+        #endregion
+
+
+        #region Aldous-Broder
+        private void AldousBroder(MazeGenGrid grid, int mask = 0)
+        {
+            int cellCount = grid.GetCellCount(mask);
+            Cell currentCell = grid.GetRandomCell(mask);
+            currentCell.Visited = true;
+            cellCount--;
+
+            while (cellCount > 0)
+            {
+                Cell neighbour = currentCell.GetRandomNeighbour(mask);
+
+                if (!neighbour.Visited)
+                {
+                    currentCell.LinkCell(neighbour, true);
+                    neighbour.Visited = true;
+                    cellCount--;
+                }
+
+                currentCell = neighbour;
+            }
+        }
+        #endregion
+
+
+        #region Aldous-Broder Live
+        private void AldousBroderLive(MazeGenGrid grid)
+        {
+            int cellCount = grid.GetCellCount();
+            Cell currentCell = grid.GetRandomCell();
+            currentCell.Visited = true;
+            cellCount--;
+
+            while (cellCount > 0)
+            {
+                Cell neighbour = currentCell.GetRandomNeighbour();
+
+                if (!neighbour.Visited)
+                {
+                    currentCell.LinkCell(neighbour, true);
+                    neighbour.Visited = true;
+                    cellCount--;
+                }
+
+                currentCell = neighbour;
+            }
+        }
+        #endregion
+
+
+        #region Wilson
+        private void Wilson(MazeGenGrid grid, int mask = 0)
+        {
+            int cellCount = grid.GetCellCount(mask);
+            Cell currentCell = grid.GetRandomCell(mask);
+            grid.GetRandomCell(mask).Visited = true;
+            cellCount--;
+            Stack<Cell> stack = new Stack<Cell>();
+
+            while (cellCount > 0)
+            {
+                while (currentCell.Visited)
+                {
+                    currentCell = grid.GetRandomCell(mask);
+                }
+
+                stack.Push(currentCell);
+                Cell neighbour = currentCell.GetRandomNeighbour(mask);
+
+                if (neighbour.Visited)
+                {
+                    currentCell = neighbour;
+
+                    for (int i = 0; i < stack.Count; i++)
+                    {
+                        currentCell.LinkCell(stack.Peek(), true);
+                        currentCell = stack.Pop();
+                        currentCell.Visited = true;
+                        cellCount--;
                         i--;
                     }
                 }
+                else if (stack.Contains(neighbour))
+                {
+                    for (int i = 0; i < stack.Count; i++)
+                    {
+                        if (stack.Peek() == neighbour)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            stack.Pop();
+                            i--;
+                        }
+                    }
+                }
+                else
+                {
+                    currentCell = neighbour;
+                }
             }
         }
-    }
+        #endregion
 
 
-    private void RemoveDeadEnds()
-    {
-        Cell cell;
-
-        for (int row = 0; row < grid.Rows; row++)
+        #region Recursive Backtracker
+        private void RecursiveBacktracker(MazeGenGrid grid, int mask = 0)
         {
-            for (int column = 0; column < grid.Columns; column++)
-            {
-                cell = grid.GetCell(column, row, 0);
+            Stack<Cell> cells = new Stack<Cell>();
+            cells.Push(grid.GetRandomCell(mask));
+            cells.Peek().Visited = true;
 
-                if (cell != null)
+            while (cells.Count > 0)
+            {
+                Cell currentCell = cells.Peek();
+                Cell neighbour = currentCell.GetRandomUnvisitedNeighbour(mask);
+
+                if (neighbour != null)
                 {
-                    if (cell.Links.Count == 1)
+                    currentCell.LinkCell(neighbour, true);
+                    neighbour.Visited = true;
+                    cells.Push(neighbour);
+                }
+                else
+                {
+                    cells.Pop();
+                }
+            }
+        }
+        private void RecursiveBacktracker(GridStruct grid, int mask = 0)
+        {
+            Stack<Cell> cells = new Stack<Cell>();
+            // cells.Push(grid.GetRandomCell(mask));
+            cells.Push(grid.grid[0, 0]);
+            cells.Peek().Visited = true;
+
+            while (cells.Count > 0)
+            {
+                Cell currentCell = cells.Peek();
+                Cell neighbour = currentCell.GetRandomUnvisitedNeighbour(mask);
+
+                if (neighbour != null)
+                {
+                    currentCell.LinkCell(neighbour, true);
+                    neighbour.Visited = true;
+                    cells.Push(neighbour);
+                }
+                else
+                {
+                    cells.Pop();
+                }
+            }
+        }
+
+        #endregion
+
+
+        #region HuntAndKill
+        private void HuntAndKill(MazeGenGrid grid, int mask = 0)
+        {
+            int cellCount = grid.GetCellCount(mask);
+            Cell currentCell = grid.GetRandomCell(mask);
+            currentCell.Visited = true;
+            cellCount--;
+
+            while (cellCount > 0)
+            {
+                Cell neighbour = currentCell.GetRandomUnvisitedNeighbour(mask);
+
+                if (neighbour != null)
+                {
+                    currentCell.LinkCell(neighbour, true);
+                    neighbour.Visited = true;
+                    cellCount--;
+                    currentCell = neighbour;
+                }
+                else
+                {
+                    if (cellCount > 0)
                     {
-                        DeleteCorridor(cell);
-                    }
-                    else if (cell.Links.Count == 0)
-                    {
-                        cell.Mask = -1;
+                        currentCell = grid.GetUnvisitedCell(true, mask);
+                        currentCell.Visited = true;
+                        neighbour = currentCell.GetRandomVisitedNeighbour(mask);
+                        currentCell.LinkCell(neighbour, true);
+                        cellCount--;
                     }
                 }
             }
         }
-    }
+        #endregion
 
 
-    private void DeleteCorridor(Cell cell)
-    {
-        while (cell.Links.Count == 1)
+        #region Link All Cells
+        /// <summary>
+        /// Links all the cells on a given mask.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="mask"></param>
+        private void LinkAllCells(MazeGenGrid grid, int mask = 0)
         {
-            Cell neighbour = cell.Links[0];
-            cell.RemoveNeighbours();
-            cell.RemoveLinks();
-            cell.Mask = -1;
-            cell = neighbour;
+            for (int row = 0; row < grid.Rows; row++)
+            {
+                for (int column = 0; column < grid.Columns; column++)
+                {
+                    // will be null if the cell isn't on the mask
+                    Cell cell = grid.GetCell(column, row, mask);
+
+                    if (cell != null)
+                    {
+                        cell.InRoom = true;
+                        List<Cell> neighbours = cell.GetNeighbours(mask);
+
+                        for (int i = 0; i < neighbours.Count; i++)
+                        {
+                            if (!cell.IsLinked(neighbours[i]))
+                            {
+                                cell.LinkCell(neighbours[i], true);
+                            }
+                        }
+                    }
+                }
+            }
         }
+        #endregion
+
+        #endregion
+
     }
+
 }
