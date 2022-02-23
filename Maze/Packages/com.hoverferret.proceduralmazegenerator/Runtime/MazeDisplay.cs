@@ -358,12 +358,15 @@ namespace PMG
                                 break;
                         }
 
-                        //integrates changes into Unity's undo system.
-                        Undo.RegisterCreatedObjectUndo(tile.gameObject, "Object Created");
-                        Undo.RecordObject(tile.gameObject, "Set Scale");
-                        tile.SetScale(xzScale, yScale);
-                        Undo.RecordObject(tile.gameObject, "Set Tile Variable");
-                        cell.Tile = tile;
+                        if (tile != null)
+                        {
+                            //integrates changes into Unity's undo system.
+                            Undo.RegisterCreatedObjectUndo(tile.gameObject, "Object Created");
+                            Undo.RecordObject(tile.gameObject, "Set Scale");
+                            tile.SetScale(xzScale, yScale);
+                            Undo.RecordObject(tile.gameObject, "Set Tile Variable");
+                            cell.Tile = tile; 
+                        }
                     }
                 }
             }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using PMG;
 
 namespace PMG
 {
@@ -73,6 +74,7 @@ namespace PMG
             maze.ApplyModifiedProperties();
         }
 
+
         private void UpdateList<T>(List<T> list, int newCount) where T : new()
         {
             if (list.Count < newCount)
@@ -138,6 +140,8 @@ namespace PMG
             maze.FindProperty("layerImage").objectReferenceValue = EditorGUILayout.ObjectField(new GUIContent("Layer Image", "Use a texture2D as the base of the maze. Below, you can selet each colour used in the maze and tell it which algorithm to use on that layer."), maze.FindProperty("layerImage").objectReferenceValue, typeof(Texture2D), true);
             GUILayout.EndHorizontal();
 
+            AutoDetectColoursButtonDisplay();
+
             GUILayout.BeginHorizontal();
             showLayers = EditorGUILayout.Foldout(showLayers, "Layers", myFoldoutStyle);
             GUILayout.EndHorizontal();
@@ -194,8 +198,6 @@ namespace PMG
             GUILayout.BeginHorizontal();
             maze.FindProperty("removeDeadends").boolValue = EditorGUILayout.Toggle(new GUIContent("Remove Deadends", ""), maze.FindProperty("removeDeadends").boolValue);
             GUILayout.EndHorizontal();
-
-
         }
 
 
@@ -219,8 +221,6 @@ namespace PMG
 
             if (GUILayout.Button("Generate Maze"))
             {
-                //mazeGenerator.DeleteMaze();
-                // mazeGenerator.GenerateMaze();
                 ((MazeGenerator)target).DestroyMaze();
                 ((MazeGenerator)target).GenerateMaze();
             }
@@ -231,6 +231,16 @@ namespace PMG
             }
 
             GUILayout.EndHorizontal();
+        }
+
+
+        private void AutoDetectColoursButtonDisplay()
+        {
+            if (GUILayout.Button("Detect Colours"))
+            {
+                ((MazeGenerator)target).DetectLayerColours();
+                showLayers = true;
+            }
         }
         #endregion
     }

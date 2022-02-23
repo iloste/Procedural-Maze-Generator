@@ -59,7 +59,19 @@ namespace PMG
         /// </summary>
         public void GenerateMaze()
         {
-            InitialiseSeed();   
+            InitialiseSeed();
+
+            for (int i = 0; i < layerColourCount; i++)
+            {
+                if (algorithms[i] == Algorithm.IgnoreLayer)
+                {
+                    Color toIgnore = layerColours[i];
+                    layerColours[i] = layerColours[0];
+                    layerColours[0] = toIgnore;
+                    algorithms[i] = algorithms[0];
+                    algorithms[0] = Algorithm.IgnoreLayer;
+                }
+            }
 
             if (tab == 1)
             {
@@ -80,6 +92,30 @@ namespace PMG
 
             mazeDisplay = GetComponent<MazeDisplay>();
             mazeDisplay.DisplayGrid(grid, xzScale, yScale);
+        }
+
+
+        /// <summary>
+        /// Adds all of colours found in the layerimage, adds them to layercolours and sets the layercolourcount.
+        /// Also resets the algorithms list.
+        /// </summary>
+        public void DetectLayerColours()
+        {
+            layerColours = new List<Color>();
+            algorithms = new List<Algorithm>();
+
+            Color[] bitmap = layerImage.GetPixels();
+
+            for (int i = 0; i < bitmap.Length; i++)
+            {
+                if (!layerColours.Contains(bitmap[i]))
+                {
+                    layerColours.Add(bitmap[i]);
+                    algorithms.Add(Algorithm.RecursiveBacktracker);
+                }
+            }
+
+            layerColourCount = layerColours.Count;
         }
 
 
@@ -136,7 +172,7 @@ namespace PMG
                 DestroyImmediate(transform.GetChild(0).gameObject);
             }
         }
-      
+
 
         /// <summary>
         /// Connects all of the different layers together. Each region gets at least 1 connection.
@@ -260,10 +296,10 @@ namespace PMG
             switch (algorithm)
             {
                 case Algorithm.BinaryTree:
-                    BinaryTree(grid);
+                    BinaryTree(grid, currentMask);
                     break;
                 case Algorithm.SideWinder:
-                    SideWinder(grid);
+                    SideWinder(grid, currentMask);
                     break;
                 case Algorithm.AldousBroder:
                     AldousBroder(grid, currentMask);
@@ -306,32 +342,41 @@ namespace PMG
         /// Creates a grid using the Binary Tree method.
         /// </summary>
         /// <param name="grid"></param>
-        private void BinaryTree(MazeGenGrid grid)
+        private void BinaryTree(MazeGenGrid grid, int mask = 0)
         {
             for (int row = 0; row < grid.Rows; row++)
             {
                 for (int column = 0; column < grid.Columns; column++)
                 {
                     List<Cell> neighbours = new List<Cell>();
-                    Cell cell = grid.GetCell(column, row);
-                    Cell neighbour;
+                    Cell cell = grid.GetCell(column, row, mask);
 
-                    // try to get north and east neighbours
-                    if (cell.neighbours.TryGetValue(Cell.CardinalDirection.North, out neighbour))
+                    if (cell != null)
                     {
-                        neighbours.Add(neighbour);
-                    }
-                    if (cell.neighbours.TryGetValue(Cell.CardinalDirection.East, out neighbour))
-                    {
-                        neighbours.Add(neighbour);
-                    }
+                        Cell neighbour;
 
-                    if (neighbours.Count > 0)
-                    {
-                        int rInt = Random.Range(0, neighbours.Count);
-                        cell.LinkCell(neighbours[rInt], true);
-                    }
+                        // try to get north and east neighbours
+                        if (cell.neighbours.TryGetValue(Cell.CardinalDirection.North, out neighbour))
+                        {
+                            if (mask == 0 || neighbour.Mask == mask)
+                            {
+                                neighbours.Add(neighbour);
+                            }
+                        }
+                        if (cell.neighbours.TryGetValue(Cell.CardinalDirection.East, out neighbour))
+                        {
+                            if (mask == 0 || neighbour.Mask == mask)
+                            {
+                                neighbours.Add(neighbour);
+                            }
+                        }
 
+                        if (neighbours.Count > 0)
+                        {
+                            int rInt = Random.Range(0, neighbours.Count);
+                            cell.LinkCell(neighbours[rInt], true);
+                        }
+                    }
                 }
             }
         }
@@ -339,7 +384,7 @@ namespace PMG
 
 
         #region SideWinder
-        private void SideWinder(MazeGenGrid grid)
+        private void SideWinder(MazeGenGrid grid, int mask = 0)
         {
             List<Cell> cellsInRun = new List<Cell>();
             bool endRun = false;
@@ -350,52 +395,72 @@ namespace PMG
             {
                 for (int column = 0; column < grid.Columns; column++)
                 {
-                    Cell cell = grid.GetCell(column, row);
-                    cellsInRun.Add(cell);
+                    Cell cell = grid.GetCell(column, row, mask);
 
-                    if (!cell.neighbours.ContainsKey(Cell.CardinalDirection.North))
+                    if (cell != null)
                     {
-                        atNorthBoundary = true;
-                    }
-                    else
-                    {
-                        atNorthBoundary = false;
-                    }
+                        cellsInRun.Add(cell);
 
-                    if (!cell.neighbours.ContainsKey(Cell.CardinalDirection.East))
-                    {
-                        atEastBoundary = true;
-                    }
-                    else
-                    {
-                        atEastBoundary = false;
-                    }
+                        Cell neighbour;
 
-                    int randomIndex = Random.Range(0, 2);
-
-                    if (atEastBoundary || (!atNorthBoundary && randomIndex == 0))
-                    {
-                        endRun = true;
-                    }
-                    else
-                    {
-                        endRun = false;
-                    }
-
-                    if (endRun)
-                    {
-                        Cell member = cellsInRun[Random.Range(0, cellsInRun.Count)];
-
-                        if (member.neighbours.ContainsKey(Cell.CardinalDirection.North))
+                        if (cell.neighbours.TryGetValue(Cell.CardinalDirection.North, out neighbour))
                         {
-                            member.LinkCell(member.neighbours[Cell.CardinalDirection.North], true);
+                            if (mask == 0 || neighbour.Mask == mask)
+                            {
+                                atNorthBoundary = false;
+                            }
+                            else
+                            {
+                                atNorthBoundary = true;
+                            }
+                        }
+                        else
+                        {
+                            atNorthBoundary = true;
                         }
 
-                        cellsInRun.Clear();
-                    }
-                    else
-                    {
-                        cell.LinkCell(cell.neighbours[Cell.CardinalDirection.East], true);
+                        if (cell.neighbours.TryGetValue(Cell.CardinalDirection.East, out neighbour))
+                        {
+                            if (mask == 0 || neighbour.Mask == mask)
+                            {
+                                atEastBoundary = false;
+                            }
+                            else
+                            {
+                                atEastBoundary = true;
+                            }
+                        }
+                        else
+                        {
+                            atEastBoundary = true;
+                        }
+
+                        int randomIndex = Random.Range(0, 2);
+
+                        if (atEastBoundary || (!atNorthBoundary && randomIndex == 0))
+                        {
+                            endRun = true;
+                        }
+                        else
+                        {
+                            endRun = false;
+                        }
+
+                        if (endRun)
+                        {
+                            Cell member = cellsInRun[Random.Range(0, cellsInRun.Count)];
+
+                            if (member.neighbours.ContainsKey(Cell.CardinalDirection.North))
+                            {
+                                member.LinkCell(member.neighbours[Cell.CardinalDirection.North], true);
+                            }
+
+                            cellsInRun.Clear();
+                        }
+                        else
+                        {
+                            cell.LinkCell(cell.neighbours[Cell.CardinalDirection.East], true);
+                        }
                     }
                 }
             }
@@ -533,7 +598,7 @@ namespace PMG
                 }
             }
         }
-       
+
         #endregion
 
 
