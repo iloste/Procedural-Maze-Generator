@@ -5,8 +5,22 @@ namespace PMG
 {
     public class MazeDisplay : MonoBehaviour
     {
-        [SerializeField] GameObject[] mazeTiles;
-        [SerializeField] GameObject[] roomTiles;
+        [Header("Maze Tiles")]
+        [SerializeField] GameObject deadendMaze;
+        [SerializeField] GameObject cornerMaze;
+        [SerializeField] GameObject throughPassMaze;
+        [SerializeField] GameObject crossJunctionMaze;
+        [SerializeField] GameObject tJunctionMaze;
+        
+        [Space(5)]
+        [Header("Room Tiles")]
+        [SerializeField] GameObject deadendRoom;
+        [SerializeField] GameObject cornerRoom;
+        [SerializeField] GameObject throughPassRoom;
+        [SerializeField] GameObject tJunctionRoom;
+        [SerializeField] GameObject crossJunctionRoom;
+        [SerializeField] GameObject tJunctionDoorRoom;
+        [SerializeField] GameObject cornerDoorRoom;
 
 
         enum TileType
@@ -23,6 +37,7 @@ namespace PMG
             REmpty,
             RTDoor,
             RCornerDoor,
+            RThroughPass
         }
 
 
@@ -73,7 +88,15 @@ namespace PMG
                     }
                     else if (linksCount == 2)
                     {
-                        return TileType.RCorner;
+                        if ((cell.IsLinked(Cell.CardinalDirection.North) && cell.IsLinked(Cell.CardinalDirection.South)) ||
+                            (cell.IsLinked(Cell.CardinalDirection.East) && cell.IsLinked(Cell.CardinalDirection.West)))
+                        {
+                            return TileType.RThroughPass;
+                        }
+                        else
+                        {
+                            return TileType.RCorner;
+                        }
                     }
                     else if (linksCount == 3)
                     {
@@ -144,7 +167,7 @@ namespace PMG
                                 break;
                             #region Deadend
                             case TileType.MDeadEnd:
-                                tile = Instantiate(mazeTiles[1], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(deadendMaze, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -166,7 +189,7 @@ namespace PMG
                             #endregion
                             #region Corner
                             case TileType.MCorner:
-                                tile = Instantiate(mazeTiles[0], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(cornerMaze, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -194,7 +217,7 @@ namespace PMG
                             #endregion
                             #region Through Pass
                             case TileType.MThroughPassage:
-                                tile = Instantiate(mazeTiles[2], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(throughPassMaze, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -208,12 +231,12 @@ namespace PMG
                             #endregion
                             #region Cross Junction
                             case TileType.MCrossJunction:
-                                tile = Instantiate(mazeTiles[4], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(crossJunctionMaze, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
                                 break;
                             #endregion
                             #region TJunction
                             case TileType.MTJunction:
-                                tile = Instantiate(mazeTiles[3], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(tJunctionMaze, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (!cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -235,7 +258,7 @@ namespace PMG
                             #endregion
                             #region RWall
                             case TileType.RWall:
-                                tile = Instantiate(roomTiles[2], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(tJunctionRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (!cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -257,7 +280,7 @@ namespace PMG
                             #endregion
                             #region RCorner
                             case TileType.RCorner:
-                                tile = Instantiate(roomTiles[1], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(cornerRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -285,7 +308,7 @@ namespace PMG
                             #endregion
                             #region RDeadEnd
                             case TileType.RDeadEnd:
-                                tile = Instantiate(roomTiles[0], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(deadendRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North))
                                 {
@@ -307,12 +330,12 @@ namespace PMG
                             #endregion
                             #region REmpty
                             case TileType.REmpty:
-                                tile = Instantiate(roomTiles[3], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(crossJunctionRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
                                 break;
                             #endregion
                             #region RTDoor
                             case TileType.RTDoor:
-                                tile = Instantiate(roomTiles[4], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(tJunctionDoorRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North) && !cell.neighbours[Cell.CardinalDirection.North].InRoom)
                                 {
@@ -334,7 +357,7 @@ namespace PMG
                             #endregion
                             #region RCornerDoor
                             case TileType.RCornerDoor:
-                                tile = Instantiate(roomTiles[5], new Vector3(column * xzScale, 0, row * xzScale), Quaternion.identity, transform).GetComponent<Tile>();
+                                tile = Instantiate(cornerDoorRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
 
                                 if (cell.IsLinked(Cell.CardinalDirection.North) && !cell.neighbours[Cell.CardinalDirection.North].InRoom)
                                 {
@@ -354,6 +377,19 @@ namespace PMG
                                 }
                                 break;
                             #endregion
+                            case TileType.RThroughPass:
+                                tile = Instantiate(throughPassRoom, new Vector3(column * xzScale, 0, row * xzScale) + transform.position, Quaternion.identity, transform).GetComponent<Tile>();
+
+                                if (cell.IsLinked(Cell.CardinalDirection.North))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 0, 0);
+                                }
+                                else if (cell.IsLinked(Cell.CardinalDirection.East))
+                                {
+                                    tile.transform.eulerAngles = new Vector3(0, 90, 0);
+                                }
+
+                                break;
                             default:
                                 break;
                         }

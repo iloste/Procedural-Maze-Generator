@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace PMG
 {
+
+    [RequireComponent(typeof(MazeDisplay))]
     public class MazeGenerator : MonoBehaviour
     {
 
@@ -38,7 +40,6 @@ namespace PMG
             SideWinder,
             AldousBroder,
             Wilson,
-            AldousBroderLive,
             RecursiveBacktracker,
             HuntAndKill,
             CreateRoom,
