@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.hoverferret.proceduralmazegenerator": {
+      "version": "file:com.hoverferret.proceduralmazegenerator",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
       "depth": 0,

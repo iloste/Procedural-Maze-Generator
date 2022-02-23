@@ -1,0 +1,26 @@
+{
+  "name": "com.hoverferret.proceduralmazegenerator",
+  "displayName": "Procedural Maze Generator",
+  "version": "1.0.0",
+  "unity": "2020.3",
+  "description": "Proceduraly generate mazes in the editor.",
+  "keywords": [
+    "Procedural Generation",
+    "Maze",
+    "Maze Generation",
+    "Dungeon Generator"
+  ],
+  "dependencies": {},
+  "samples": [
+    {
+      "displayName": "Tile Prefabs",
+      "description": "The tile prefabs used to create the mazes. It's recomended to include these, at least as a base to work off if you want to add your own tiles later",
+      "path": "Samples~/Prefabs"
+    },
+    {
+      "displayName": "Sample Scenes",
+      "description": "Some scenes demonstrating how the maze generator works",
+      "path": "Samples~/Sample Scenes"
+    }
+  ]
+}
