@@ -1,0 +1,16 @@
+{
+    "name": "hoverferret.proceduralmazegenerator.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:22cbf6378236f0046bdf15e3fe3e112c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
